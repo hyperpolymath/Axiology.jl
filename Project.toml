@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: PMPL-1.0-or-later
+
+name = "Axiology"
+uuid = "a1b2c3d4-e5f6-7g8h-9i0j-k1l2m3n4o5p6"
+authors = ["Jonathan D.A. Jewell <jonathan.jewell@open.ac.uk>"]
+version = "0.1.0"
+
+[deps]
+JuMP = "4076af6c-e467-56ae-b986-b466b2749572"
+Optim = "429524aa-4258-5aef-a3af-852621145aeb"
+
+[compat]
+julia = "1.9"
+JuMP = "1.18"
+Optim = "1.7"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
