@@ -3,9 +3,28 @@
 Jonathan D. A. Jewell <jonathan.jewell@open.ac.uk>
 :toc:
 
+[WARNING]
+====
+**⚠️  SPECIFICATION-ONLY - NOT IMPLEMENTED**
+
+This repository currently contains ONLY:
+
+* API specification and design documentation
+* Type definitions (27 lines of Julia code)
+* Placeholder stub functions (`satisfy() -> true`, `maximize() -> 1.0`)
+
+**NO REAL FUNCTIONALITY HAS BEEN IMPLEMENTED.**
+
+The examples below describe the *intended* API, not current capabilities.
+
+Current status: **5% complete** (specification phase only)
+
+See `.machine_readable/STATE.scm` for implementation roadmap.
+====
+
 == Overview
 
-**Axiology.jl** is a Julia library for value theory in machine learning and automated reasoning systems.
+**Axiology.jl** is a *proposed* Julia library for value theory in machine learning and automated reasoning systems.
 
 > Axiology (from Greek ἀξία _axiā_ "value") is the philosophical study of value. This library brings axiology into computational form, enabling ML systems to reason about and verify value-aligned behavior.
 

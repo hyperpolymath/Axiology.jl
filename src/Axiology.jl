@@ -5,6 +5,16 @@
     Axiology
 
 Value theory for machine learning - define, optimize, and verify ethical/economic values in ML models.
+
+⚠️  WARNING: SPECIFICATION-ONLY - NOT IMPLEMENTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+This module currently contains ONLY type definitions and placeholder stubs.
+The functionality described in README.adoc has NOT been implemented.
+
+Current status: 27 lines of stub code (satisfy() -> true, maximize() -> 1.0)
+Implementation needed: ~2000+ lines for actual value theory functionality
+
+See STATE.scm for roadmap and current completion (5%).
 """
 module Axiology
 
