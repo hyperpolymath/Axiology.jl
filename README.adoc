@@ -1,133 +1,312 @@
-= RSR template repo - see RSR_OUTLINE.adoc in root for general background and specification
+// SPDX-License-Identifier: PMPL-1.0-or-later
+= Axiology.jl
+Jonathan D. A. Jewell <jonathan.jewell@open.ac.uk>
+:toc:
 
-== This is your repo - don't forget to rename me!
+== Overview
 
-== ABI/FFI Standards (Hyperpolymath Universal Standard)
+**Axiology.jl** is a Julia library for value theory in machine learning and automated reasoning systems.
 
-**All repos with foreign function interfaces MUST follow this standard:**
+> Axiology (from Greek ἀξία _axiā_ "value") is the philosophical study of value. This library brings axiology into computational form, enabling ML systems to reason about and verify value-aligned behavior.
 
-* **ABI (Application Binary Interface)** → **Idris2** (`src/abi/*.idr`)
-** Type definitions with dependent type proofs
-** Memory layout verification
-** Platform-specific ABIs with compile-time selection
-** Formal verification of interface correctness
+== The Value Alignment Problem
 
-* **FFI (Foreign Function Interface)** → **Zig** (`ffi/zig/src/*.zig`)
-** C-compatible function implementations
-** Zero-cost abstractions
-** Memory-safe by default
-** Cross-compilation support
+Machine learning systems optimize objective functions, but:
 
-* **Generated C Headers** → Auto-generated from Idris2 ABI (`generated/abi/*.h`)
-** Bridge between Idris2 and Zig
-** Consumed by any language via C ABI
+* **Misalignment Risk**: Optimizing the wrong metric leads to harmful behavior
+* **Multi-Objective Tradeoffs**: Real systems balance competing values (fairness, efficiency, safety)
+* **Implicit Values**: ML decisions encode ethical choices whether acknowledged or not
 
-**Directory Structure:**
+Axiology.jl makes values **explicit, verifiable, and composable**.
+
+== Core Concepts
+
+=== Value Types
+
+Axiology.jl provides a hierarchy of value types:
+
+[source,julia]
 ----
-project/
-├── src/abi/          # Idris2 ABI definitions (REQUIRED)
-├── ffi/zig/          # Zig FFI implementation (REQUIRED)
-├── generated/abi/    # Auto-generated C headers
-└── bindings/         # Language-specific wrappers (optional)
-----
+abstract type Value end
 
-**See:** `ABI-FFI-README.md` for complete documentation
-
-== AI Gatekeeper Protocol (MANDATORY)
-
-**CRITICAL:** All hyperpolymath repos MUST include an AI manifest.
-
-* **File:** `0-AI-MANIFEST.a2ml` (included in this template)
-* **Purpose:** Universal entry point for ALL AI agents (Claude, Gemini, OpenAI, etc.)
-* **Location:** Repository root (alphabetically first)
-* **Customize:** Update `[YOUR-REPO-NAME]` placeholders and repository structure section
-
-**The manifest declares:**
-
-* Canonical file locations (e.g., "SCM files ONLY in `.machine_readable/`")
-* Critical invariants (rules that must NEVER be violated)
-* Repository structure and organization
-* Lifecycle hooks (on-enter, on-exit) for session logging
-
-**Benefits:**
-
-* ✅ Prevents duplicate file errors (e.g., SCM files in wrong locations)
-* ✅ Context preserved across sessions and AI platforms
-* ✅ No repeated explanations - mechanical enforcement
-* ✅ Works universally (not just Claude)
-
-**See:** link:https://github.com/hyperpolymath/0-ai-gatekeeper-protocol[AI Gatekeeper Protocol] for details
-
-**Enforcement:**
-
-* MCP server (mcp-repo-guardian) - Hard enforcement for Claude
-* FUSE wrapper (repo-guardian-fs) - Universal enforcement (coming soon)
-* CI/CD validation - Continuous compliance checking
-
-== AI CLI standards
-
-- **FIRST:** Customize `0-AI-MANIFEST.a2ml` for your repo before any other work
-- Include `ai-cli-crash-capture/` and `contractiles/` from this template in new repos.
-- Mirror 6SCM files into `.machine_readable/` (NOT `.machine_readable/6scm/`).
-- Before any code generation, check `/var/mnt/eclipse/repos/proven` for the current Idris "unbreakable" library status.
-- If a project uses that Idris library, add an *Idris Inside* badge to the repo.
-- If new bindings are required, add them in `/var/mnt/eclipse/repos/proven` as `idris2-zig-<language>` during the work.
-- If new code suggests additional "unbreakable" Idris modules, add them under `/var/mnt/eclipse/repos/proven` and update binders across all supported languages.
-
-== Standard Dependencies
-
-=== Web Projects
-
-ReScript web projects in the hyperpolymath ecosystem **MUST** use these formally verified components:
-
-[cols="1,2,1"]
-|===
-|Library |Purpose |Status
-
-|link:https://github.com/hyperpolymath/rescript-dom-mounter[rescript-dom-mounter]
-|Formally verified DOM mounting
-|**REQUIRED**
-
-|link:https://github.com/hyperpolymath/rescript-tea[rescript-tea]
-|TEA architecture framework
-|Recommended
-
-|link:https://github.com/hyperpolymath/cadre-tea-router[cadre-tea-router]
-|Proven-safe URL routing
-|Recommended
-
-|link:https://github.com/hyperpolymath/proven[proven]
-|Idris2 formally verified library
-|Core Dependency
-|===
-
-==== Why SafeDOM is Required
-
-Traditional DOM mounting can fail:
-
-[source,javascript]
-----
-// ❌ UNSAFE: Can crash with null pointer
-const el = document.getElementById('app')
-el.innerHTML = html  // 💥
+struct Fairness <: Value end
+struct Welfare <: Value end
+struct Profit <: Value end
+struct Efficiency <: Value end
+struct Safety <: Value end
 ----
 
-SafeDOM provides **compile-time proofs** that DOM operations cannot fail:
+=== Value Operations
 
-[source,rescript]
+**Satisfy**: Check if a system state satisfies a value criterion
+
+[source,julia]
 ----
-// ✅ PROVEN SAFE: Mathematically guaranteed
-SafeDOM.mountSafe("#app", html,
-  ~onSuccess=el => Console.log("Success"),
-  ~onError=err => Console.error(err))
+satisfy(value::Value, state::SystemState) -> Bool
 ----
 
-**Mathematical Guarantees:**
+**Maximize**: Optimize a system to maximize a value
 
-✓ No null pointer dereferences (Idris2 proof)
-✓ No invalid CSS selectors (dependent types)
-✓ No malformed HTML (balanced tag checking)
-✓ Type-safe operations (ReScript + Idris2)
-✓ Zero runtime overhead (proofs erased)
+[source,julia]
+----
+maximize(value::Value, system::System) -> OptimizedSystem
+----
 
-See link:https://github.com/hyperpolymath/rescript-dom-mounter[rescript-dom-mounter documentation] for full details.
+**Verify**: Formally verify value alignment
+
+[source,julia]
+----
+verify_value(value::Value, proof::Proof) -> Verified | Failed
+----
+
+== Installation
+
+From Julia REPL:
+
+[source,julia]
+----
+using Pkg
+Pkg.add("Axiology")
+----
+
+== Usage Examples
+
+=== Fairness-Aware ML
+
+[source,julia]
+----
+using Axiology, MLJ
+
+# Define fairness criterion
+fairness = Fairness(
+    protected_attribute = :gender,
+    metric = :demographic_parity,
+    threshold = 0.05  # Max 5% disparity
+)
+
+# Train model with fairness constraint
+model = train(algorithm, data, constraints=[fairness])
+
+# Verify fairness post-hoc
+@assert satisfy(fairness, model)
+----
+
+=== Multi-Objective Optimization
+
+[source,julia]
+----
+using Axiology
+
+# Define competing values
+values = [
+    Welfare(metric=:utility_sum, weight=0.4),
+    Fairness(metric=:gini_coefficient, weight=0.3),
+    Efficiency(metric=:computation_time, weight=0.3)
+]
+
+# Pareto-optimal solutions
+solutions = pareto_frontier(system, values)
+
+# Select solution with value tradeoff
+chosen = select_solution(solutions, preference=:balanced)
+----
+
+=== Formal Value Verification
+
+[source,julia]
+----
+using Axiology, ECHIDNA
+
+# Define value invariant
+safety = Safety(
+    invariant = "∀ state. system(state) ⟹ safe(state)",
+    prover = :Lean
+)
+
+# Generate formal proof
+proof = prove(safety.invariant, system)
+
+# Verify with theorem prover
+verification = verify_value(safety, proof)
+
+if verification isa Verified
+    println("System formally proven safe ✓")
+else
+    println("Safety violation: $(verification.counterexample)")
+end
+----
+
+== API Reference
+
+=== Value Types
+
+`Fairness`::
+Encodes fairness criteria (demographic parity, equalized odds, etc.)
+
+`Welfare`::
+Utilitarian welfare measures (sum, mean, or weighted utility)
+
+`Profit`::
+Economic value (revenue, cost, ROI)
+
+`Efficiency`::
+Resource efficiency (time, memory, energy)
+
+`Safety`::
+Safety constraints (invariants, preconditions, postconditions)
+
+=== Core Functions
+
+`satisfy(value, state) -> Bool`::
+Check if `state` satisfies `value` criterion.
+
+`maximize(value, system) -> OptimizedSystem`::
+Optimize `system` to maximize `value` while preserving constraints.
+
+`verify_value(value, proof) -> Verified | Failed`::
+Formally verify that `proof` demonstrates value alignment.
+
+`pareto_frontier(system, values) -> Vector{Solution}`::
+Compute Pareto-optimal solutions for multi-objective value optimization.
+
+`select_solution(solutions, preference) -> Solution`::
+Select solution from Pareto frontier based on value preferences.
+
+=== Integration APIs
+
+`echidna_verify(value, system) -> Proof`::
+Invoke ECHIDNA to generate formal proof of value satisfaction.
+
+`fairlearn_constraint(value) -> Constraint`::
+Convert Axiology value to FairLearn constraint object.
+
+`flux_loss(value) -> LossFunction`::
+Convert value to differentiable loss function for neural training.
+
+== Theoretical Foundations
+
+Axiology.jl draws from:
+
+* **Moral Philosophy**: Utilitarianism, deontology, virtue ethics
+* **Welfare Economics**: Pareto efficiency, social welfare functions
+* **Game Theory**: Nash equilibria, cooperative games, mechanism design
+* **Formal Methods**: Model checking, theorem proving, contract verification
+* **ML Fairness**: Demographic parity, equalized odds, individual fairness
+
+== Integration with ECHIDNA
+
+Axiology.jl is designed for tight integration with ECHIDNA:
+
+* **Formal Verification**: Use ECHIDNA's 17 theorem provers to verify value invariants
+* **Neural Guidance**: Train ML models to predict value-aligned actions
+* **Multi-Prover Consensus**: Cross-validate value proofs across multiple provers
+* **Explainability**: Generate natural language explanations of value tradeoffs
+
+=== Example: Verified Fairness
+
+[source,julia]
+----
+using Axiology, ECHIDNA
+
+# Define fairness as formal invariant
+fairness = Fairness(
+    invariant = "∀ (x₁ x₂ : Input).
+                 protected_attr(x₁) ≠ protected_attr(x₂) ⟹
+                 |P(Ŷ=1|X=x₁) - P(Ŷ=1|X=x₂)| < ε",
+    prover = :Lean
+)
+
+# Generate proof with ECHIDNA
+proof = ECHIDNA.prove(fairness.invariant,
+                      model=my_classifier,
+                      prover=:Lean)
+
+# Verify
+result = verify_value(fairness, proof)
+----
+
+== Development Status
+
+Current Version: **0.1.0** (Initial Release)
+
+* [x] Core value type hierarchy
+* [x] Basic satisfy/maximize/verify API
+* [x] Initial test suite
+* [x] RSR compliance
+* [ ] Multi-objective optimization
+* [ ] Formal verification integration with ECHIDNA
+* [ ] ML fairness library integration (FairLearn, AIF360)
+* [ ] Comprehensive documentation
+
+See link:ROADMAP.adoc[ROADMAP.adoc] for development plans.
+
+== Use Cases
+
+=== Healthcare AI
+* **Safety**: Verify medical AI never recommends contraindicated treatments
+* **Fairness**: Ensure diagnostic models don't discriminate by race/gender
+* **Welfare**: Optimize for patient outcomes, not just hospital metrics
+
+=== Financial Systems
+* **Fairness**: Prevent algorithmic discrimination in lending
+* **Profit**: Balance returns with stakeholder welfare
+* **Efficiency**: Optimize execution speed without market manipulation
+
+=== Autonomous Vehicles
+* **Safety**: Formally prove collision avoidance under all conditions
+* **Welfare**: Balance passenger and pedestrian safety
+* **Efficiency**: Optimize routes without compromising safety
+
+=== Public Policy
+* **Welfare**: Evaluate policy impact with social welfare functions
+* **Fairness**: Detect and mitigate disparate impact
+* **Efficiency**: Balance effectiveness with resource constraints
+
+== License
+
+Dual licensed under:
+
+* **MIT License** - link:LICENSE-MIT[LICENSE-MIT]
+* **Palimpsest Meta-Project License 1.0** - link:LICENSE-PMPL[LICENSE-PMPL]
+
+Choose either license for use, modification, and distribution.
+
+== Contributing
+
+See link:CONTRIBUTING.md[CONTRIBUTING.md] for contribution guidelines.
+
+Priority areas:
+
+* **Formal Methods**: Integration with Lean, Coq, Isabelle
+* **ML Fairness**: Wrappers for existing fairness libraries
+* **Case Studies**: Real-world value alignment applications
+* **Visualization**: Tools for value tradeoff exploration
+
+== Citation
+
+If you use Axiology.jl in research, please cite:
+
+[source,bibtex]
+----
+@software{axiology2026,
+  author = {Jewell, Jonathan D.A.},
+  title = {Axiology.jl: Value Theory for Machine Learning},
+  year = {2026},
+  version = {0.1.0},
+  url = {https://github.com/hyperpolymath/Axiology.jl}
+}
+----
+
+== References
+
+* **AI Alignment**: Russell, S. (2019). _Human Compatible: AI and the Problem of Control_
+* **ML Fairness**: Barocas, S., Hardt, M., & Narayanan, A. (2023). _Fairness and Machine Learning_
+* **Formal Methods**: Hoare, T. (1969). "An Axiomatic Basis for Computer Programming"
+* **Value Theory**: Korsgaard, C. (1983). "Two Distinctions in Goodness"
+* **Welfare Economics**: Sen, A. (1970). _Collective Choice and Social Welfare_
+
+== Contact
+
+* **Author:** Jonathan D.A. Jewell <jonathan.jewell@open.ac.uk>
+* **GitHub:** https://github.com/hyperpolymath/Axiology.jl
+* **Issues:** https://github.com/hyperpolymath/Axiology.jl/issues
