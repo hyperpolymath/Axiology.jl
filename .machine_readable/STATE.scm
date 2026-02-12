@@ -7,7 +7,7 @@
     (version "0.1.0")
     (schema-version "1.0.0")
     (created "2026-02-07")
-    (updated "2026-02-07")
+    (updated "2026-02-12")
     (project "Axiology.jl")
     (repo "hyperpolymath/Axiology.jl"))
 
@@ -17,8 +17,8 @@
     (tech-stack (julia ml-ethics optimization verification)))
 
   (current-position
-    (phase "production-ready")
-    (overall-completion 100)
+    (phase "alpha")
+    (overall-completion 65)
     (components
       ((name . "Specification")
        (status . "complete")
@@ -26,14 +26,24 @@
        (description . "README documents desired API and use cases"))
 
       ((name . "Type Definitions")
-       (status . "minimal")
-       (completion . 10)
-       (description . "Abstract Value type + 4 concrete types (stubs only)"))
-
-      ((name . "Julia Implementation")
        (status . "complete")
        (completion . 100)
-       (description . "1,088 lines of production code. Full functionality implemented and tested.")))
+       (description . "Abstract Value type + 5 concrete types fully defined"))
+
+      ((name . "Julia Implementation")
+       (status . "functional")
+       (completion . 70)
+       (description . "Core functions work. verify_value is stub. maximize(Efficiency) has placeholders. value_score normalization uses hardcoded assumptions. 43/45 tests passing."))
+
+      ((name . "ML Integration")
+       (status . "not-started")
+       (completion . 0)
+       (description . "No ML framework integration yet"))
+
+      ((name . "Formal Verification")
+       (status . "stub")
+       (completion . 5)
+       (description . "verify_value exists but only wraps proof[:verified] field")))
 
     (working-features
       "Complete value type system (Fairness, Welfare, Profit, Efficiency, Safety)"

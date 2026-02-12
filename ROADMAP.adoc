@@ -11,7 +11,7 @@ Initial release with foundational value theory:
 * [x] Basic API (satisfy, maximize, verify_value)
 * [x] Initial test suite
 * [x] RSR compliance (AI manifest, checkpoint files, workflows)
-* [ ] Multi-objective optimization (Pareto frontiers)
+* [x] Multi-objective optimization (Pareto frontiers)
 * [ ] Formal verification integration
 * [ ] ML library integration
 
@@ -58,10 +58,10 @@ Initial release with foundational value theory:
 == v0.4.0 - ML Fairness Integration
 
 === Fairness Metrics
-* [ ] Demographic parity (group fairness)
-* [ ] Equalized odds (conditional fairness)
+* [x] Demographic parity (group fairness)
+* [x] Equalized odds (conditional fairness)
 * [ ] Predictive parity (calibration)
-* [ ] Individual fairness (Lipschitz continuity)
+* [x] Individual fairness (Lipschitz continuity)
 * [ ] Counterfactual fairness (causal)
 
 === Library Wrappers

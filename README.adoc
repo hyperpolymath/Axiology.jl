@@ -7,7 +7,7 @@ Jonathan D. A. Jewell <jonathan.jewell@open.ac.uk>
 
 **Axiology.jl** is a fully functional Julia library for value theory in machine learning and automated reasoning systems.
 
-> **Status**: ✅ **Production Ready** - 1,088 lines of code, 45/45 tests passing
+> **Status**: ✅ **Alpha - Core value system functional, integration APIs planned** - 1,088 lines of code, 43/45 tests passing
 
 > Axiology (from Greek ἀξία _axiā_ "value") is the philosophical study of value. This library brings axiology into computational form, enabling ML systems to reason about and verify value-aligned behavior.
 
@@ -173,17 +173,6 @@ Compute Pareto-optimal solutions for multi-objective value optimization.
 
 `select_solution(solutions, preference) -> Solution`::
 Select solution from Pareto frontier based on value preferences.
-
-=== Integration APIs
-
-`echidna_verify(value, system) -> Proof`::
-Invoke ECHIDNA to generate formal proof of value satisfaction.
-
-`fairlearn_constraint(value) -> Constraint`::
-Convert Axiology value to FairLearn constraint object.
-
-`flux_loss(value) -> LossFunction`::
-Convert value to differentiable loss function for neural training.
 
 == Theoretical Foundations
 
