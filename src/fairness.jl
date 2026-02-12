@@ -99,3 +99,33 @@ function individual_fairness(predictions::AbstractVector, similarity_matrix::Abs
     end
     return count > 0 ? total_diff / count : 0.0
 end
+
+function satisfy(value::Fairness, state::Dict)::Bool
+    predictions = get(state, :predictions, nothing)
+    protected = get(state, :protected, get(state, :protected_attributes, nothing))
+    labels = get(state, :labels, nothing)
+    similarity_matrix = get(state, :similarity_matrix, nothing)
+
+    isnothing(predictions) && error("State must contain :predictions for fairness evaluation.")
+    isnothing(protected) && value.metric != :individual_fairness && error("State must contain :protected for group fairness.")
+    isnothing(similarity_matrix) && value.metric == :individual_fairness && error("State must contain :similarity_matrix for individual fairness.")
+
+    disparity = if value.metric == :demographic_parity
+        demographic_parity(predictions, protected)
+    elseif value.metric == :equalized_odds
+        isnothing(labels) && error("equalized_odds metric requires :labels in state.")
+        equalized_odds(predictions, labels, protected)
+    elseif value.metric == :equal_opportunity
+        isnothing(labels) && error("equal_opportunity metric requires :labels in state.")
+        equal_opportunity(predictions, labels, protected)
+    elseif value.metric == :disparate_impact
+        di_ratio = disparate_impact(predictions, protected)
+        return di_ratio >= value.threshold
+    elseif value.metric == :individual_fairness
+        individual_fairness(predictions, similarity_matrix)
+    else
+        error("Unknown fairness metric: $(value.metric).")
+    end
+
+    return disparity <= value.threshold
+end
