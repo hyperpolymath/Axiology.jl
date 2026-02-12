@@ -245,7 +245,7 @@ a broader set of constraints.
 ```julia
 # Define a profit objective with a target and a fairness constraint
 profit_objective = Profit(
-    target = 1_000_000.0, # Aim for $1M profit
+    target = 1_000_000.0, # Aim for 1M profit
     constraints = [Fairness(metric = :demographic_parity, threshold = 0.1)],
     weight = 0.6
 )
