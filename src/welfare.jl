@@ -107,12 +107,14 @@ function maximize(value::Efficiency, initial_state::Dict)::Float64
         time = get(initial_state, :computation_time, nothing)
         isnothing(time) && error("initial_state must contain :computation_time for :computation_time efficiency maximization.")
         return -time  # Negative because we want to minimize time
-    elseif value.metric == :pareto || value.metric == :kaldor_hicks
-        # These are typically hard constraints or binary properties, not easily maximized
-        # If they are satisfied, they contribute 1.0; otherwise 0.0.
-        # This implementation currently just returns 1.0 as a neutral score
-        # when not explicitly dealing with minimization (like time).
-        return 1.0
+    elseif value.metric == :pareto
+        is_pareto = get(initial_state, :is_pareto_efficient, nothing)
+        isnothing(is_pareto) && error("initial_state must contain :is_pareto_efficient for :pareto efficiency maximization.")
+        return is_pareto ? 1.0 : 0.0
+    elseif value.metric == :kaldor_hicks
+        net_gain = get(initial_state, :net_gain, nothing)
+        isnothing(net_gain) && error("initial_state must contain :net_gain for :kaldor_hicks efficiency maximization.")
+        return net_gain
     else
         error("Unknown efficiency metric: $(value.metric). Must be one of $(instances(EfficiencyMetric)).")
     end
@@ -158,7 +160,31 @@ function maximize(value::Safety, initial_state::Dict)::Float64
 end
 
 function verify_value(value::Value, proof::Dict)::Bool
-    verified = get(proof, :verified, false)
+    # Require verified field to be a Bool
+    verified = get(proof, :verified, nothing)
+    isnothing(verified) && error("proof must contain :verified field")
+    isa(verified, Bool) || error("proof[:verified] must be a Bool, got $(typeof(verified))")
+
+    return verified
+end
+
+function verify_value(value::Safety, proof::Dict)::Bool
+    # Require verified field to be a Bool
+    verified = get(proof, :verified, nothing)
+    isnothing(verified) && error("proof must contain :verified field")
+    isa(verified, Bool) || error("proof[:verified] must be a Bool, got $(typeof(verified))")
+
+    # For critical safety values, require a prover
+    if value.critical
+        prover = get(proof, :prover, nothing)
+        isnothing(prover) && error("Critical safety proofs must contain :prover field")
+        # Log prover information if details are available
+        details = get(proof, :details, nothing)
+        if !isnothing(details)
+            @info "Safety proof from prover: $prover" details
+        end
+    end
+
     return verified
 end
 

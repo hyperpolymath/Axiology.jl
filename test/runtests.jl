@@ -79,6 +79,86 @@ using Axiology
             )
             @test !satisfy(fairness, state_unfair)
         end
+
+        @testset "Equalized Odds" begin
+            # Perfect equalized odds: same TPR and FPR across groups
+            predictions = [1, 0, 1, 0]
+            labels = [1, 0, 1, 0]
+            protected = [:a, :b, :a, :b]
+            @test equalized_odds(predictions, labels, protected) == 0.0
+
+            # Unequal TPR/FPR
+            predictions_unequal = [1, 1, 1, 0]
+            labels_unequal = [1, 0, 1, 0]
+            protected_unequal = [:a, :a, :b, :b]
+            disparity = equalized_odds(predictions_unequal, labels_unequal, protected_unequal)
+            @test disparity > 0.0
+        end
+
+        @testset "Equal Opportunity" begin
+            # Perfect equal opportunity: same TPR across groups
+            predictions = [1, 0, 1, 0]
+            labels = [1, 0, 1, 0]
+            protected = [:a, :b, :a, :b]
+            @test equal_opportunity(predictions, labels, protected) == 0.0
+
+            # Unequal TPR
+            predictions_unequal = [1, 0, 1, 1]
+            labels_unequal = [1, 1, 1, 1]
+            protected_unequal = [:a, :a, :b, :b]
+            disparity = equal_opportunity(predictions_unequal, labels_unequal, protected_unequal)
+            @test disparity > 0.0
+        end
+
+        @testset "Individual Fairness" begin
+            # Similar individuals with similar predictions (low unfairness)
+            predictions = [0.5, 0.5, 0.9, 0.9]
+            similarity = [
+                1.0 0.9 0.1 0.1;
+                0.9 1.0 0.1 0.1;
+                0.1 0.1 1.0 0.9;
+                0.1 0.1 0.9 1.0
+            ]
+            fairness_score = individual_fairness(predictions, similarity)
+            @test fairness_score ≈ 0.0 atol=0.01
+
+            # Similar individuals with different predictions (high unfairness)
+            predictions_unfair = [0.1, 0.9, 0.1, 0.9]
+            unfairness_score = individual_fairness(predictions_unfair, similarity)
+            @test unfairness_score > 0.5
+        end
+    end
+
+    @testset "Edge Cases" begin
+        @testset "Single group fairness" begin
+            @test demographic_parity([1, 0, 1], [:a, :a, :a]) == 0.0
+            @test disparate_impact([1, 0, 1], [:a, :a, :a]) == 1.0
+        end
+
+        @testset "Empty/small welfare inputs" begin
+            @test utilitarian_welfare([]) == 0.0
+            @test egalitarian_welfare([10.0]) == 0.0
+            @test_throws ErrorException rawlsian_welfare([])
+        end
+
+        @testset "Normalization edge cases" begin
+            @test normalize_scores([5.0, 5.0, 5.0]) == [1.0, 1.0, 1.0]
+            @test_throws ArgumentError normalize_scores([])
+        end
+
+        @testset "Weighted score edge cases" begin
+            values = [Fairness(metric=:demographic_parity, threshold=0.1, weight=0.0)]
+            state = Dict(:predictions => [1, 0], :protected => [:a, :b])
+            @test weighted_score(values, state) == 0.0
+        end
+
+        @testset "Invalid inputs" begin
+            # Invalid metric should error
+            @test_throws ErrorException Fairness(metric=:invalid_metric, threshold=0.1)
+
+            # Empty invariant should error
+            @test_throws AssertionError Safety(invariant="", critical=true)
+        end
     end
 
     @testset "Welfare Functions" begin
