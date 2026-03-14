@@ -1,34 +1,34 @@
-= RSR-template-repo - Citation Guide
+= Axiology.jl - Citation Guide
 :toc:
 
 == BibTeX
 
 [source,bibtex]
 ----
-@software{rsr-template-repo_2025,
-  author = {Polymath, Hyper},
-  title = {RSR-template-repo},
-  year = {2025},
-  url = {https://github.com/hyperpolymath/RSR-template-repo},
-  license = {AGPL-3.0-or-later}
+@software{Axiology.jl_2026,
+  author = {Jewell, Jonathan D.A.},
+  title = {Axiology.jl},
+  year = {2026},
+  url = {https://github.com/hyperpolymath/Axiology.jl},
+  license = {MPL-2.0}
 }
 ----
 
 == Harvard Style
 
-Polymath, H. (2025) _RSR-template-repo_ [Computer software]. Available at: https://github.com/hyperpolymath/RSR-template-repo
+Jewell, J.D.A. (2026) _Axiology.jl_ [Computer software]. Available at: https://github.com/hyperpolymath/Axiology.jl
 
 == OSCOLA
 
-Hyper Polymath, 'RSR-template-repo' (2025) <https://github.com/hyperpolymath/RSR-template-repo>
+Jonathan D.A. Jewell, 'Axiology.jl' (2026) <https://github.com/hyperpolymath/Axiology.jl>
 
 == MLA
 
-Polymath, Hyper. "RSR-template-repo." 2025, github.com/hyperpolymath/RSR-template-repo.
+Jewell, Jonathan D.A. "Axiology.jl." 2026, github.com/hyperpolymath/Axiology.jl.
 
 == APA 7
 
-Polymath, H. (2025). _RSR-template-repo_ [Computer software]. GitHub. https://github.com/hyperpolymath/RSR-template-repo
+Jewell, J.D.A. (2026). _Axiology.jl_ [Computer software]. GitHub. https://github.com/hyperpolymath/Axiology.jl
 
 == See Also
 
