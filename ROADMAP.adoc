@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: PMPL-1.0-or-later
 = Axiology.jl Roadmap
-Jonathan D. A. Jewell <jonathan.jewell@open.ac.uk>
+Jonathan D. A. Jewell <j.d.a.jewell@open.ac.uk>
 :toc:
 
 == Current Status (v0.1.0)
@@ -262,7 +262,7 @@ Key works informing this roadmap:
 
 Questions, collaborations, or suggestions?
 
-* **Jonathan D.A. Jewell** <jonathan.jewell@open.ac.uk>
+* **Jonathan D.A. Jewell** <j.d.a.jewell@open.ac.uk>
 * **GitHub Issues**: https://github.com/hyperpolymath/Axiology.jl/issues
 * **Discussions**: https://github.com/hyperpolymath/Axiology.jl/discussions
 

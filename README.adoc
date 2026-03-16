@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: PMPL-1.0-or-later
 = Axiology.jl
-Jonathan D. A. Jewell <jonathan.jewell@open.ac.uk>
+Jonathan D. A. Jewell <j.d.a.jewell@open.ac.uk>
 :toc:
 
 == Overview
@@ -301,6 +301,6 @@ If you use Axiology.jl in research, please cite:
 
 == Contact
 
-* **Author:** Jonathan D.A. Jewell <jonathan.jewell@open.ac.uk>
+* **Author:** Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 * **GitHub:** https://github.com/hyperpolymath/Axiology.jl
 * **Issues:** https://github.com/hyperpolymath/Axiology.jl/issues
