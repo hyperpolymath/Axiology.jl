@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: PMPL-1.0-or-later
-# Copyright (c) 2026 Jonathan D.A. Jewell <jonathan.jewell@open.ac.uk>
+# Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 
 function demographic_parity(predictions::AbstractVector, protected_attributes::AbstractVector)::Float64
     @assert length(predictions) == length(protected_attributes) "Lengths must match."
