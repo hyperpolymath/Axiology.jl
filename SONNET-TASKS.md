@@ -159,7 +159,7 @@ println("TASK 4 PASSED")
 - `/var/mnt/eclipse/repos/Axiology.jl/examples/web-project-deno.json`
 
 **Problem:** `SafeDOMExample.res` is a ReScript file for DOM manipulation that has nothing to do
-with Axiology.jl. It also uses an `AGPL-3.0-or-later` SPDX header, which violates the project's
+with Axiology.jl. It also uses an `PMPL-1.0-or-later` SPDX header, which violates the project's
 license policy. `web-project-deno.json` is an unrelated Deno project config. Both are clearly
 copy-paste artifacts from the RSR template or another project.
 
