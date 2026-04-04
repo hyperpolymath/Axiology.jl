@@ -12,7 +12,8 @@
 
 ## What's Covered
 
-COVERAGE_ITEMS
+- [x] Julia unit tests (Pkg.test())
+- [x] Module doctests
 
 ## Still Missing (for CRG B+)
 
