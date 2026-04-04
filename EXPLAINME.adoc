@@ -5,38 +5,59 @@
 
 The README makes claims. This file backs them up.
 
-[quote, README]
-____
-Jonathan D. A. Jewell <j.d.a.jewell@open.ac.uk>
-____
+== Real Claims From The README
+
+**Claim 1: "Define diverse ethical and economic values (e.g., Fairness, Welfare, Profit, Efficiency, Safety) as first-class citizens… assess whether a given ML model's behavior or outcome satisfy predefined value criteria"** (README, Key Features section)
+
+Axiology.jl provides a type system for ML value requirements. The core types are defined in `src/types.jl`:
+
+* `Fairness` — struct with metric (`:demographic_parity`, `:equalized_odds`, etc.), protected attributes, and threshold
+* `Welfare` — struct with metric (`:utilitarian`, `:rawlsian`, `:egalitarian`) and weight
+* `Profit`, `Efficiency`, `Safety` — similar value types
+
+The module exports a `satisfy(value, state)` function (defined in `src/fairness.jl` and `src/welfare.jl`) that checks whether a model's state meets the value's criteria. For example, `satisfy(fairness, model_state)` computes demographic parity disparity and returns true if it's below the threshold.
+
+*How it works:* Each value type stores a metric identifier and parameters. The satisfy function takes the value and model evaluation state (a Dict with predictions, labels, protected attributes, etc.). It computes the metric and compares against the threshold. The user can compose multiple values to check multiple criteria. Caveat: This is a specification and API layer—it does not integrate directly with popular ML frameworks (TensorFlow, PyTorch) yet. Users must manually extract model predictions and format them as Dict state.
+
+**Claim 2: "Address the inherent trade-offs between competing values… exploring the set of non-dominated solutions in multi-objective optimization"** (README, Key Features section 3-4)
+
+The module provides `pareto_frontier(configs, values)` in `src/optimization.jl`. Given a set of model configurations and multiple competing values, it returns the Pareto frontier—configurations where no value can improve without degrading another. The module also provides `value_score(value, state)` to compute a scalar score, and `weighted_score(values, state)` to combine scores across multiple values.
+
+*How it works:* The pareto_frontier function iterates over configurations, computes each value's score, and filters out dominated solutions (where one config is strictly better on all metrics). The remaining configs form the frontier. Users can then select a preferred trade-off point. The `normalize_scores` function scales scores to [0, 1] to enable fair weighting. Caveat: The frontier computation is O(n²) for n configurations; for large config spaces, approximation algorithms may be necessary.
+
+== Dogfooted Across The Account
+
+Axiology.jl uses the hyperpolymath ABI/FFI standard (Idris2 ABI + Zig FFI) for formal value proofs. This pattern is shared across:
+
+* link:https://github.com/hyperpolymath/proven[proven] — ML model provenance and fairness proofs
+* link:https://github.com/hyperpolymath/burble[burble] — Elixir media platform with value-driven routing
+* link:https://github.com/hyperpolymath/gossamer[gossamer] — Window management with Idris2-verified state transitions
+
+The Axiology.jl module serves as the value framework for all these projects' design decisions.
 
 == Technology Choices
 
-[cols="1,2"]
+[cols="1,2,3"]
 |===
-| Technology | Learn More
+| Technology | Learn More | Why
 
-| **Zig** | https://ziglang.org
-| **Julia** | https://julialang.org
-| **Idris2 ABI** | https://www.idris-lang.org
+| **Julia** | https://julialang.org | Numerical computing, multi-dispatch for metric implementations
+| **Idris2 ABI** | https://www.idris-lang.org | Formal proofs of value satisfaction properties (Phase 2+)
+| **Zig FFI** | https://ziglang.org | C interop for high-performance metric computation
 |===
-
-== Dogfooded Across The Account
-
-Uses the hyperpolymath ABI/FFI standard (Idris2 + Zig). Same pattern used across
-https://github.com/hyperpolymath/proven[proven],
-https://github.com/hyperpolymath/burble[burble], and
-https://github.com/hyperpolymath/gossamer[gossamer].
 
 == File Map
 
-[cols="1,2"]
+[cols="1,2,3"]
 |===
-| Path | What's There
+| Path | What's There | Key Details
 
-| `src/` | Source code
-| `ffi/` | Foreign function interface
-| `test(s)/` | Test suite
+| `src/Axiology.jl` | Module entry point | Exports all public API (satisfy, maximize, pareto_frontier, value_score, etc.)
+| `src/types.jl` | Type definitions | `Fairness`, `Welfare`, `Profit`, `Efficiency`, `Safety` structs; metric enum
+| `src/fairness.jl` | Fairness implementations | `demographic_parity`, `equalized_odds`, `equal_opportunity` functions
+| `src/welfare.jl` | Welfare functions | `utilitarian_welfare`, `rawlsian_welfare`, `egalitarian_welfare`
+| `src/optimization.jl` | Pareto frontier | `pareto_frontier`, `dominated`, `value_score`, `weighted_score`, `normalize_scores`
+| `test/` | Test suite | Unit tests for each metric, satisfy(), and frontier computation
 |===
 
 == Questions?
