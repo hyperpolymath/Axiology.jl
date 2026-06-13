@@ -10,7 +10,7 @@ jobs:
   mirror-gitlab:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: vars.GITLAB_MIRROR_ENABLED == 'true'
+    if: vars.GITLAB_MIRROR_ENABLED == 'true' && secrets.GITLAB_SSH_KEY != ''
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -26,7 +26,7 @@ jobs:
   mirror-bitbucket:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: vars.BITBUCKET_MIRROR_ENABLED == 'true'
+    if: vars.BITBUCKET_MIRROR_ENABLED == 'true' && secrets.BITBUCKET_SSH_KEY != ''
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -42,7 +42,7 @@ jobs:
   mirror-codeberg:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: vars.CODEBERG_MIRROR_ENABLED == 'true'
+    if: vars.CODEBERG_MIRROR_ENABLED == 'true' && secrets.CODEBERG_SSH_KEY != ''
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -58,7 +58,7 @@ jobs:
   mirror-sourcehut:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: vars.SOURCEHUT_MIRROR_ENABLED == 'true'
+    if: vars.SOURCEHUT_MIRROR_ENABLED == 'true' && secrets.SOURCEHUT_SSH_KEY != ''
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -74,7 +74,7 @@ jobs:
   mirror-disroot:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: vars.DISROOT_MIRROR_ENABLED == 'true'
+    if: vars.DISROOT_MIRROR_ENABLED == 'true' && secrets.DISROOT_SSH_KEY != ''
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -90,7 +90,7 @@ jobs:
   mirror-gitea:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: vars.GITEA_MIRROR_ENABLED == 'true'
+    if: vars.GITEA_MIRROR_ENABLED == 'true' && secrets.GITEA_SSH_KEY != ''
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -106,7 +106,7 @@ jobs:
   mirror-radicle:
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: vars.RADICLE_MIRROR_ENABLED == 'true'
+    if: vars.RADICLE_MIRROR_ENABLED == 'true' && secrets.RADICLE_KEY != ''
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
