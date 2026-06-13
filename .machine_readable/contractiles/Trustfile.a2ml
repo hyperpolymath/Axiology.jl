@@ -10,6 +10,13 @@
 # "template files"; the integrity invariants below are kept and apply to
 # Axiology.jl.
 
+[metadata]
+name = "Axiology.jl-trustfile"
+project = "Axiology.jl"
+schema_version = "1.0"
+version = "1.0.0"
+last-updated = "2026-06-13"
+
 @abstract:
 Trust boundaries and integrity checks for Axiology.jl. Defines what AI agents
 may do autonomously and what requires human approval, plus checks that verify

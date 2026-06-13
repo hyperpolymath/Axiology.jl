@@ -10,6 +10,13 @@
 # the rsr-template-repo Adjustfile (drift checks about "template placeholders"
 # and "template version drift").
 
+[metadata]
+name = "Axiology.jl-adjustfile"
+project = "Axiology.jl"
+schema_version = "1.0"
+version = "1.0.0"
+last-updated = "2026-06-13"
+
 @abstract:
 Drift tolerances and corrective actions for Axiology.jl. Unlike MUST (hard
 gate), ADJUST tracks cumulative drift against tolerance bands and proposes

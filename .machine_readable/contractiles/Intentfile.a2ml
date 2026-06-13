@@ -17,6 +17,13 @@
 # carried was the un-substituted rsr-template-repo Intentfile (its intents
 # were "repo-initialization / contractile-completeness for the template").
 
+[metadata]
+name = "Axiology.jl-intentfile"
+project = "Axiology.jl"
+schema_version = "1.0"
+version = "1.0.0"
+last-updated = "2026-06-13"
+
 @abstract:
 North-star for Axiology.jl: making ethical and economic values explicit,
 verifiable, and composable for machine learning systems. The invariant goal
