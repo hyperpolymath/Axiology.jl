@@ -1,99 +1,88 @@
 # SPDX-License-Identifier: MPL-2.0
-# Intentfile (A2ML Canonical) — north-star contractile for rsr-template-repo
+# Intentfile (A2ML Canonical) — north-star contractile for Axiology.jl
 # Author: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 #
 # Paired runner: intend.ncl
 # Verb:          intend
 #
 # Semantics: North-star contractile. Declares BOTH concrete committed
-#            next-actions AND horizon aspirations the project wishes to
-#            become. Two sections share one file because they answer
-#            the same question at different ranges:
+#            next-actions AND horizon aspirations. Non-gating — a report,
+#            not a gate (see Mustfile for hard gates).
 #              [[intents]] — "we WILL do this; track progress"
-#                            status: declared → in_progress → done |
-#                                    deferred | retired
+#                            status: declared → in_progress → done | deferred | retired
 #              [[wishes]]  — "we WISH this were true; revisit later"
-#                            status: declared → in_progress → achieved |
-#                                    abandoned
 #                            grouped by horizon: near / mid / far.
-#            Non-gating — this is a report, not a gate. See the `must`
-#            contractile for hard gates.
+#
+# NOTE (2026-06-13): rewritten for Axiology.jl. The file the estate branch
+# carried was the un-substituted rsr-template-repo Intentfile (its intents
+# were "repo-initialization / contractile-completeness for the template").
 
 @abstract:
-North-star contractile for rsr-template-repo. This repository is the
-canonical template for Rhodium Standard Repository compliance. It provides
-the scaffold that all hyperpolymath repos should copy and customize.
+North-star for Axiology.jl: making ethical and economic values explicit,
+verifiable, and composable for machine learning systems. The invariant goal
+is that value alignment — fairness, welfare, safety, efficiency — is first-class
+in both the type system and the satisfaction API.
 @end
 
 ## Purpose
 
-The rsr-template-repo serves as the master template for all hyperpolymath
-repositories. It contains the complete set of contractile files, machine-readable
-specifications, and governance documentation that define the Rhodium Standard.
-
-Every new repository in the hyperpolymath estate should be initialized by
-copying this template and substituting the placeholder values with
-repo-specific content.
+Axiology.jl makes values explicit, verifiable, and composable for ML systems.
+It provides a Julia framework for defining value types (Fairness, Welfare,
+Profit, Efficiency, Safety), checking whether ML model states satisfy those
+values, finding Pareto frontiers across competing objectives, and laying the
+groundwork for formal verification of value properties via the Idris2 ABI
+and Zig FFI layers.
 
 ## Anti-Purpose
 
-This repository is NOT:
-- A general-purpose project scaffold for external use (hyperpolymath-only)
-- A replacement for per-repo customization (all files must be bespoke)
-- A static template that never changes (evolves with RSR spec)
-- A runtime library or framework (build-time only)
+Axiology.jl is NOT:
+- a general-purpose ML framework (it is a value-specification and checking layer)
+- a replacement for fairness auditing tooling (it is a compositional API, not a scanner)
+- a proof assistant (the Idris2 ABI and src/abi/ back the library; they are not the product)
+- directly integrated with TensorFlow/PyTorch (users supply model outputs as Dict state)
 
 ## If In Doubt
 
-If you are unsure whether a change is in scope, ask. Sensitive areas:
-- .machine_readable/ contractile definitions
-- RSR specification files
-- Governance templates
-- License policy documents
+Sensitive areas — ask before changing: `src/types.jl` (value type hierarchy),
+`src/abi/` (formal ABI definitions), `ffi/zig/` (C-ABI boundary),
+`.machine_readable/` (checkpoint format).
 
 ## Committed Next-Actions
 
-### repo-initialization
-- description: Provide just copy-and-substitute template for new repos
-- probe: test -f scripts/init-repo.sh
-- status: done
-- notes: Run with source scripts/init-repo.sh <new-repo-name>
+### ml-framework-bridges
+- description: integration adapters for common ML frameworks (Flux.jl, MLJ.jl)
+- probe: test -f src/bridges.jl || test -d src/bridges/
+- status: declared
+- notes: currently users must format model outputs manually as Dict state
 
-### contractile-completeness
-- description: Every RSR contractile has an a2ml and ncl implementation
-- probe: ls .machine_readable/contractiles/*.a2ml | wc -l | grep -q "^6$"
-- status: in_progress
-- notes: Currently 6 contractile verbs: intend, must, trust, adjust, bust, dust
+### formal-verification-phase2
+- description: Idris2 proofs of value satisfaction properties wired into CI
+- probe: test -d src/abi/ && ls src/abi/*.idr 2>/dev/null | grep -q .
+- status: declared
+- notes: ABI-FFI-README.md describes the intended proof structure
 
-### automation-scripts
-- description: All repetitive tasks have just recipes
-- probe: grep -c "^# " Justfile | grep -q "^[6-9][0-9]*$"
-- status: in_progress
+### pareto-scalability
+- description: Pareto frontier computation improved beyond O(n²) for large config spaces
+- probe: grep -q 'approximation\|scalable' src/optimization.jl
+- status: declared
+- notes: documented in EXPLAINME.adoc as a known caveat
 
 ## Wishes
 
 ### Near Horizon
-
-#### cross-repo-validation
-- description: Tooling to validate all repos against RSR spec
-- horizon: near
-- status: declared
-
-#### automated-substitution
-- description: Script to automate repo-specific substitution in template
+#### equalized-odds-support
+- description: equalized odds fairness metric (in addition to demographic parity / disparate impact)
 - horizon: near
 - status: declared
 
 ### Mid Horizon
-
-#### formal-verification
-- description: Idris2 proofs for all critical contractile invariants
+#### value-composition-algebra
+- description: formal algebra for composing value constraints (conjunction, disjunction, priority)
 - horizon: mid
 - status: declared
 
 ### Far Horizon
-
-#### ecosystem-visualization
-- description: Interactive graph of all hyperpolymath repos and dependencies
+#### runtime-value-monitoring
+- description: online monitoring of value satisfaction during model inference
 - horizon: far
 - status: declared
