@@ -57,9 +57,17 @@ function value_score(value::Value, state::Dict)::Float64
             end
         end
 
-        # Normalize welfare value - simple approach: return welfare_val directly
-        # More sophisticated normalization could be added based on expected ranges
-        return welfare_val
+        # Normalize welfare value to [0,1] using max_welfare from state if provided,
+        # otherwise clamp the raw value to [0,1].
+        max_welfare = get(state, :max_welfare, nothing)
+        if !isnothing(max_welfare) && max_welfare > 0.0
+            return min(1.0, max(0.0, welfare_val / max_welfare))
+        else
+            # For egalitarian (negative values mean inequality), map to [0,1]:
+            # 0.0 = perfect equality, negative = inequality → score = max(0, 1 + welfare_val)
+            # For utilitarian/rawlsian without max_welfare, clamp to [0,1].
+            return min(1.0, max(0.0, welfare_val))
+        end
 
     elseif value isa Profit
         profit = get(state, :profit, nothing)
