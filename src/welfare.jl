@@ -174,7 +174,10 @@ function verify_value(value::Safety, proof::Dict)::Bool
     isnothing(verified) && error("proof must contain :verified field")
     isa(verified, Bool) || error("proof[:verified] must be a Bool, got $(typeof(verified))")
 
-    # For critical safety values, require a prover
+    # If not verified, return false immediately — no need to check prover.
+    !verified && return false
+
+    # For critical safety values that are verified, require a prover
     if value.critical
         prover = get(proof, :prover, nothing)
         isnothing(prover) && error("Critical safety proofs must contain :prover field")

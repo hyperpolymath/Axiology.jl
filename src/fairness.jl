@@ -24,8 +24,11 @@ function equalized_odds(predictions::AbstractVector{<:Real}, labels::AbstractVec
     if length(unique_groups) < 2
         return 0.0
     end
-    tpr_disparities = Float64[]
-    fpr_disparities = Float64[]
+    # Only include groups that have positives (for TPR) or negatives (for FPR).
+    # Groups with no positives have undefined TPR; including them as 0.0 creates
+    # artificial disparity when other groups achieve TPR=1.0 on their (all-positive) data.
+    tprs = Float64[]
+    fprs = Float64[]
     for group in unique_groups
         group_mask = protected_attributes .== group
         group_preds = predictions[group_mask]
@@ -34,13 +37,17 @@ function equalized_odds(predictions::AbstractVector{<:Real}, labels::AbstractVec
         fp = sum((group_preds .== 1) .& (group_labels .== 0))
         tn = sum((group_preds .== 0) .& (group_labels .== 0))
         fn = sum((group_preds .== 0) .& (group_labels .== 1))
-        tpr = (tp + fn) > 0 ? tp / (tp + fn) : 0.0
-        fpr = (fp + tn) > 0 ? fp / (fp + tn) : 0.0
-        push!(tpr_disparities, tpr)
-        push!(fpr_disparities, fpr)
+        # Only count TPR for groups that have at least one positive example
+        if (tp + fn) > 0
+            push!(tprs, tp / (tp + fn))
+        end
+        # Only count FPR for groups that have at least one negative example
+        if (fp + tn) > 0
+            push!(fprs, fp / (fp + tn))
+        end
     end
-    max_tpr_disparity = maximum(tpr_disparities) - minimum(tpr_disparities)
-    max_fpr_disparity = maximum(fpr_disparities) - minimum(fpr_disparities)
+    max_tpr_disparity = length(tprs) >= 2 ? maximum(tprs) - minimum(tprs) : 0.0
+    max_fpr_disparity = length(fprs) >= 2 ? maximum(fprs) - minimum(fprs) : 0.0
     return max(max_tpr_disparity, max_fpr_disparity)
 end
 
@@ -51,6 +58,9 @@ function equal_opportunity(predictions::AbstractVector{<:Real}, labels::Abstract
     if length(unique_groups) < 2
         return 0.0
     end
+    # Only include groups that have at least one positive label.
+    # Groups with no positives have undefined TPR; including them as 0.0 creates
+    # artificial disparity when other groups achieve TPR=1.0 on their (all-positive) data.
     tprs = Float64[]
     for group in unique_groups
         group_mask = protected_attributes .== group
@@ -58,10 +68,11 @@ function equal_opportunity(predictions::AbstractVector{<:Real}, labels::Abstract
         group_labels = labels[group_mask]
         tp = sum((group_preds .== 1) .& (group_labels .== 1))
         fn = sum((group_preds .== 0) .& (group_labels .== 1))
-        tpr = (tp + fn) > 0 ? tp / (tp + fn) : 0.0
-        push!(tprs, tpr)
+        if (tp + fn) > 0
+            push!(tprs, tp / (tp + fn))
+        end
     end
-    return maximum(tprs) - minimum(tprs)
+    return length(tprs) >= 2 ? maximum(tprs) - minimum(tprs) : 0.0
 end
 
 function disparate_impact(predictions::AbstractVector, protected_attributes::AbstractVector)::Float64
