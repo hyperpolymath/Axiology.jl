@@ -5,6 +5,9 @@
 # workflow .github/workflows/instant-sync.yml (secret NAME only; no values).
 
 [metadata]
+name = "Axiology.jl-git-private-farm"
+project = "Axiology.jl"
+schema_version = "1.0"
 repo = "Axiology.jl"
 last-updated = "2026-06-13"
 owner = "hyperpolymath"

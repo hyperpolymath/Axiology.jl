@@ -5,6 +5,9 @@
 # per-bot directive files (.machine_readable/bot_directives/*.a2ml).
 
 [metadata]
+name = "Axiology.jl-gitbot-fleet"
+project = "Axiology.jl"
+schema_version = "1.0"
 repo = "Axiology.jl"
 last-updated = "2026-06-13"
 owner = "hyperpolymath"

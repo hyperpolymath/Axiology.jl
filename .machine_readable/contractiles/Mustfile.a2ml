@@ -12,6 +12,13 @@
 # delivered layout is FLAT. The checks below match Axiology.jl's ACTUAL
 # flat layout. The template drift is recorded for upstream fix.
 
+[metadata]
+name = "Axiology.jl-mustfile"
+project = "Axiology.jl"
+schema_version = "1.0"
+version = "1.0.0"
+last-updated = "2026-06-13"
+
 @abstract:
 Physical-state invariants for Axiology.jl. Hard requirements — CI and
 pre-commit hooks fail if any critical check fails.
