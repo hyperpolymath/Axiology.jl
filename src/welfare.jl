@@ -3,12 +3,12 @@
 
 using Statistics
 
-function utilitarian_welfare(utilities::AbstractVector{<:Real})::Float64
+function utilitarian_welfare(utilities::AbstractVector)::Float64
     isempty(utilities) && return 0.0 # Return 0.0 for empty utility vector
     return sum(utilities)
 end
 
-function rawlsian_welfare(utilities::AbstractVector{<:Real})::Float64
+function rawlsian_welfare(utilities::AbstractVector)::Float64
     isempty(utilities) && error("Cannot compute Rawlsian welfare for an empty utility vector.")
     return minimum(utilities)
 end
@@ -190,4 +190,3 @@ function verify_value(value::Safety, proof::Dict)::Bool
 
     return verified
 end
-
