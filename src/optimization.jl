@@ -57,16 +57,14 @@ function value_score(value::Value, state::Dict)::Float64
             end
         end
 
-        # Normalize welfare value to [0,1] using max_welfare from state if provided,
-        # otherwise clamp the raw value to [0,1].
+        # Normalize welfare value to [0,1] using max_welfare from state if provided.
+        # Without max_welfare, return the raw welfare value so callers (e.g. pareto_frontier)
+        # can compare solutions meaningfully rather than collapsing all positive values to 1.0.
         max_welfare = get(state, :max_welfare, nothing)
         if !isnothing(max_welfare) && max_welfare > 0.0
             return min(1.0, max(0.0, welfare_val / max_welfare))
         else
-            # For egalitarian (negative values mean inequality), map to [0,1]:
-            # 0.0 = perfect equality, negative = inequality → score = max(0, 1 + welfare_val)
-            # For utilitarian/rawlsian without max_welfare, clamp to [0,1].
-            return min(1.0, max(0.0, welfare_val))
+            return welfare_val
         end
 
     elseif value isa Profit
@@ -115,7 +113,7 @@ function weighted_score(values::Vector{<:Value}, state::Dict)::Float64
     return weighted_sum / total_weight
 end
 
-function normalize_scores(scores::AbstractVector{<:Real})::Vector{Float64}
+function normalize_scores(scores::AbstractVector)::Vector{Float64}
     if isempty(scores)
         throw(ArgumentError("Cannot normalize an empty vector of scores."))
     end
@@ -190,4 +188,3 @@ function pareto_frontier(system::Dict, values::AbstractVector{<:Value})::Vector{
     # Call the primary pareto_frontier method
     return pareto_frontier(solutions, values)
 end
-
