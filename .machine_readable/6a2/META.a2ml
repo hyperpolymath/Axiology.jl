@@ -1,9 +1,34 @@
 # SPDX-License-Identifier: MPL-2.0
 # META.a2ml — Project meta-information
-# Converted from META.scm on 2026-03-15
+# Converted from META.scm on 2026-03-15; refreshed 2026-06-13
 
 [metadata]
 project = "Axiology.jl"
 author = "Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>"
 license = "MPL-2.0"
 standard = "RSR 2026"
+last-updated = "2026-06-13"
+
+[repository]
+owner = "hyperpolymath"
+name = "Axiology.jl"
+url = "https://github.com/hyperpolymath/Axiology.jl"
+uuid = "868b87ec-ec5d-47a0-ab5f-c8a8ecbd97bd"
+
+[architecture]
+primary-language = "Julia 1.9+"
+ffi-layer = "Zig (ffi/zig/) — C-ABI boundary for performance-critical metric computation"
+abi-layer = "Idris2 (src/abi/) — dependent-type formal proofs of value satisfaction properties (Phase 2+)"
+dependencies = ["Statistics (stdlib)", "LinearAlgebra (stdlib)"]
+test-dependencies = ["Test (stdlib)"]
+
+[design-decisions]
+single-file-core = "src/Axiology.jl is the primary module; src/types.jl, src/fairness.jl, src/welfare.jl, src/optimization.jl are included via include()"
+no-ml-framework-dep = "Axiology does not depend on Flux.jl or MLJ.jl in core; users supply model outputs as Dict state"
+idris2-abi-rationale = "dependent types prove interface correctness for value satisfaction contracts (see ABI-FFI-README.md)"
+zig-ffi-rationale = "zero-cost C ABI compatibility for high-performance metric computation"
+
+[governance]
+estate-standard = "06-12"
+contractile-layout = "flat (.machine_readable/contractiles/)"
+last-estate-update = "2026-06-13"
