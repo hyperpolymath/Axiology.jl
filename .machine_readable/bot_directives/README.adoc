@@ -1,0 +1,48 @@
+// SPDX-License-Identifier: MPL-2.0
+// Copyright (c) Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+= Bot directives — Axiology.jl
+:toc:
+
+== Purpose
+
+Per-repo directives for automated agents operating on
+`hyperpolymath/Axiology.jl`. These files tell bots what this repository
+considers safe, what is forbidden, and which findings are already
+adjudicated, so automated runs do not relitigate settled decisions or
+touch protected surfaces.
+
+== Precedence
+
+. Maintainer instruction (see `MAINTAINERS.adoc`) — always wins.
+. These directives.
+. Bot built-in defaults.
+
+== Files
+
+Estate-standard trio (net-new 2026-06-13):
+
+* `hypatia.a2ml` — Hypatia scanner config pointers + pre-adjudicated
+  finding classes (Zig FFI cross-language boundary, acknowledged backup
+  source files), grounded in `ABI-FFI-README.md` and repo facts.
+* `gitbot-fleet.a2ml` — fleet roster, branch policy, never-touch paths,
+  per-bot constraints.
+* `git-private-farm.a2ml` — `.git-private-farm` propagation contract;
+  propagation is **live** here (the repo ships
+  `.github/workflows/instant-sync.yml` using secret `FARM_DISPATCH_TOKEN`).
+
+Pre-existing methodology files:
+
+* `methodology.a2ml` — default agent mode, invariants, ring ceiling,
+  priority weights, convergent budget.
+* `coverage.a2ml` — session coverage tracking.
+* `debt.a2ml` — meander debt carried between sessions.
+
+== Repo-specific ground rules (summary)
+
+* `src/abi/` and `ffi/zig/` are bot-off-limits without explicit approval
+  (ABI/FFI changes require proof updates — see `ABI-FFI-README.md` and
+  `PROOF-NEEDS.md`).
+* CI green precedes merge; bots never auto-merge and never delete branches.
+* Escalation channel is an issue, not PR-comment spam.
+* Propagation to `.git-private-farm` is live via `instant-sync.yml`
+  on push/release events to main.

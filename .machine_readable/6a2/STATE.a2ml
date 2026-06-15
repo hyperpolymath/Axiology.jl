@@ -1,14 +1,41 @@
 # SPDX-License-Identifier: MPL-2.0
 # STATE.a2ml — Project state checkpoint
-# Converted from STATE.scm on 2026-03-15
+# Converted from STATE.scm on 2026-03-15; refreshed 2026-06-13
 
 [metadata]
 project = "Axiology.jl"
 version = "0.1.0"
-last-updated = "2026-03-15"
+last-updated = "2026-06-13"
 status = "active"
 
 [project-context]
 name = "Axiology.jl"
-completion-percentage = 0
-phase = "In development"
+completion-percentage = 65
+phase = "Alpha — core value system functional, integration APIs planned"
+description = "Julia library for value theory in machine learning and automated reasoning systems. Provides value types (Fairness, Welfare, Profit, Efficiency, Safety), satisfaction checking, Pareto frontier analysis, and groundwork for formal verification via Idris2 ABI + Zig FFI."
+
+[build]
+language = "Julia"
+julia-compat = "1.9+"
+test-command = "julia --project=. -e 'using Pkg; Pkg.test()'"
+test-baseline = "43/45 tests passing (172 @test expressions across 129 @testsets)"
+source-lines = "1088"
+
+[milestones]
+landed = [
+  "value type system: Fairness, Welfare, Profit, Efficiency, Safety",
+  "satisfy() checking API",
+  "demographic_parity and disparate_impact fairness metrics",
+  "multi-objective weighted scoring",
+  "pareto_frontier() analysis",
+  "Zig FFI layer (ffi/zig/)",
+  "Idris2 ABI groundwork (ABI-FFI-README.md, PROOF-NEEDS.md)",
+  "basic_usage.jl example",
+]
+open = [
+  "ML framework bridges (Flux.jl, MLJ.jl)",
+  "equalized odds fairness metric",
+  "Idris2 proofs wired into CI (Phase 2+)",
+  "pareto_frontier scalability beyond O(n^2)",
+  "src/fairness.jl.backup / *_minimal / *_nodocs cleanup",
+]

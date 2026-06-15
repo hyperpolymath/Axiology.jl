@@ -82,6 +82,11 @@ using LinearAlgebra
 # Core value types
 export Value, Fairness, Welfare, Profit, Efficiency, Safety
 export FairnessMetric, WelfareMetric, EfficiencyMetric
+# Enum variant exports
+export demographic_parity_metric, equalized_odds_metric, equal_opportunity_metric
+export disparate_impact_metric, individual_fairness_metric
+export utilitarian_metric, rawlsian_metric, egalitarian_metric
+export pareto_metric, kaldor_hicks_metric, computation_time_metric
 export satisfy, maximize, verify_value
 export pareto_frontier, dominated, value_score
 export weighted_score, normalize_scores

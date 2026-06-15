@@ -162,8 +162,9 @@ struct Fairness <: Value
                         protected_attributes::Vector{Symbol} = Symbol[],
                         threshold::Float64 = 0.05,
                         weight::Float64 = 1.0)
-        @assert metric in [:demographic_parity, :equalized_odds, :equal_opportunity,
-                          :disparate_impact, :individual_fairness] "Invalid fairness metric: `$(metric)`. Must be one of $(instances(FairnessMetric))."
+        metric in [:demographic_parity, :equalized_odds, :equal_opportunity,
+                   :disparate_impact, :individual_fairness] ||
+            error("Invalid fairness metric: `$(metric)`. Must be one of $(instances(FairnessMetric)).")
         @assert threshold >= 0.0 && threshold <= 1.0 "Threshold must be in [0,1]."
         @assert weight >= 0.0 "Weight must be non-negative."
         new(metric, protected_attributes, threshold, weight)

@@ -1,0 +1,109 @@
+# SPDX-License-Identifier: MPL-2.0
+# Mustfile.a2ml — Physical state contract for Axiology.jl
+# Author: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+#
+# What MUST be true about this repository. Hard requirements.
+# Run with: must check    Fix with: must fix (where a deterministic fix exists)
+#
+# NOTE (2026-06-13): this REPLACES the file the estate branch carried over
+# from rsr-template-repo unsubstituted. That template Mustfile asserted the
+# OLD nested layout (contractiles/bust/, contractiles/dust/,
+# self-validating/k9-svc/, 6a2/anchors/) as critical — but the 06-12
+# delivered layout is FLAT. The checks below match Axiology.jl's ACTUAL
+# flat layout. The template drift is recorded for upstream fix.
+
+[metadata]
+name = "Axiology.jl-mustfile"
+project = "Axiology.jl"
+schema_version = "1.0"
+version = "1.0.0"
+last-updated = "2026-06-13"
+
+@abstract:
+Physical-state invariants for Axiology.jl. Hard requirements — CI and
+pre-commit hooks fail if any critical check fails.
+@end
+
+## File Presence
+
+### license-present
+- description: LICENSE file must exist (MPL-2.0)
+- run: test -f LICENSE
+- severity: critical
+
+### readme-present
+- description: a README must exist
+- run: test -f README.md || test -f README.adoc
+- severity: critical
+
+### security-policy
+- description: SECURITY.md must exist
+- run: test -f SECURITY.md
+- severity: critical
+
+### governance-docs
+- description: GOVERNANCE.adoc, MAINTAINERS.adoc, CODEOWNERS must exist
+- run: test -f GOVERNANCE.adoc && test -f MAINTAINERS.adoc && test -f .github/CODEOWNERS
+- severity: critical
+
+### project-toml
+- description: Project.toml must exist (Julia package manifest)
+- run: test -f Project.toml
+- severity: critical
+
+### machine-readable-dir
+- description: .machine_readable/ directory must exist
+- run: test -d .machine_readable
+- severity: critical
+
+## Directory Structure (FLAT contractile layout, 06-12 standard)
+
+### contractiles-flat-present
+- description: All six flat contractile files + Justfile exist
+- run: for f in Adjustfile Bustfile Dustfile Intentfile Mustfile Trustfile; do test -f .machine_readable/contractiles/$f.a2ml || exit 1; done; test -f .machine_readable/contractiles/Justfile
+- severity: critical
+
+### six-a-two-present
+- description: 6a2 directory has the seven core metadata files + AI manifest
+- run: for f in STATE META ECOSYSTEM AGENTIC NEUROSYM PLAYBOOK 0-AI-MANIFEST; do test -f .machine_readable/6a2/$f.a2ml || exit 1; done
+- severity: critical
+
+### bot-directives-trio
+- description: bot_directives carries the estate trio
+- run: test -f .machine_readable/bot_directives/hypatia.a2ml && test -f .machine_readable/bot_directives/gitbot-fleet.a2ml && test -f .machine_readable/bot_directives/git-private-farm.a2ml
+- severity: critical
+
+### self-validating-present
+- description: self-validating/ exists with k9 templates + examples (flat, no k9-svc subdir)
+- run: test -d .machine_readable/self-validating && test -d .machine_readable/self-validating/examples && test -f .machine_readable/self-validating/template-kennel.k9.ncl
+- severity: warning
+
+## Build & Test Integrity
+
+### julia-package-loadable
+- description: the Julia package loads without error
+- run: julia --project=. -e 'using Axiology; println("loaded")'
+- severity: critical
+
+### julia-tests-pass
+- description: the Julia test suite passes
+- run: julia --project=. -e 'using Pkg; Pkg.test()'
+- severity: critical
+
+### ffi-zig-present
+- description: the Zig FFI layer source files exist
+- run: test -f ffi/zig/build.zig && test -f ffi/zig/src/main.zig
+- severity: warning
+
+## Template Integrity
+
+### no-placeholder-values
+- description: no unsubstituted template placeholders remain in contractiles
+- run: test -z "$(grep -rn '{{' .machine_readable/contractiles/ 2>/dev/null)"
+- severity: critical
+
+### no-template-identity-leak
+- description: no contractile still claims to be rsr-template-repo
+- run: test -z "$(grep -rln 'rsr-template-repo' .machine_readable/contractiles/ 2>/dev/null | grep -v 'NOTE\|template drift')"
+- severity: warning
+- notes: guards against re-importing the un-substituted template Mustfile

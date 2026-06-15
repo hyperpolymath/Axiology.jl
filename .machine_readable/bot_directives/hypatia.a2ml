@@ -1,0 +1,58 @@
+# SPDX-License-Identifier: MPL-2.0
+# hypatia.a2ml — Hypatia scanner directives for Axiology.jl.
+# Net-new at the 2026-06-13 governance checkpoint per the estate
+# bot_directives standard (hypatia / gitbot-fleet / git-private-farm trio).
+
+[metadata]
+name = "Axiology.jl-hypatia"
+project = "Axiology.jl"
+schema_version = "1.0"
+repo = "Axiology.jl"
+last-updated = "2026-06-13"
+owner = "hyperpolymath"
+
+[scanner]
+workflow = ".github/workflows/hypatia-scan.yml"
+ignore-file = ".hypatia-ignore"   # ABSENT as of 2026-06-13; created on first real adjudication, each entry carrying a verified rationale
+
+# ============================================================
+# Pre-adjudicated finding classes.
+#
+# These are grounded in documented repo facts (README.adoc, EXPLAINME.adoc,
+# ABI-FFI-README.md, PROOF-NEEDS.md); they are NOT live suppressions.
+# When the scanner first raises one, materialise it into .hypatia-ignore
+# with the EXACT rule-id from the scan output — do not invent rule-ids here.
+# ============================================================
+
+[[accepted-findings]]
+class = "zig/ffi-unsafe"
+path = "ffi/zig/**"
+status = "justified"
+reason = """
+The Zig FFI layer (ffi/zig/src/main.zig, ffi/zig/test/integration_test.zig)
+crosses the C-ABI boundary to Julia. Low-level unsafe operations at this
+boundary are required and documented in ABI-FFI-README.md. Do not raise
+as defects; if a NEW unsafe pattern appears outside ffi/zig/, that IS a
+finding.
+"""
+
+[[accepted-findings]]
+class = "julia/backup-source-files"
+path = "src/fairness.jl.backup, src/fairness_minimal.jl, src/fairness_nodocs.jl"
+status = "acknowledged-development-artifact"
+reason = """
+Three fairness.jl variants exist during active development of the fairness
+module. These are tracked in version control intentionally. They should be
+removed once fairness.jl stabilises; until then they are not security
+findings.
+"""
+
+# ============================================================
+# Prohibited actions
+# ============================================================
+
+[prohibited-actions]
+auto-delete-branches = false
+auto-merge = false
+modify-workflows = false        # CI hardening goes through review, not bot edits
+escalation = "open an issue, do not spam PR comments"

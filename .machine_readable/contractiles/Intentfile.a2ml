@@ -1,0 +1,95 @@
+# SPDX-License-Identifier: MPL-2.0
+# Intentfile (A2ML Canonical) — north-star contractile for Axiology.jl
+# Author: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+#
+# Paired runner: intend.ncl
+# Verb:          intend
+#
+# Semantics: North-star contractile. Declares BOTH concrete committed
+#            next-actions AND horizon aspirations. Non-gating — a report,
+#            not a gate (see Mustfile for hard gates).
+#              [[intents]] — "we WILL do this; track progress"
+#                            status: declared → in_progress → done | deferred | retired
+#              [[wishes]]  — "we WISH this were true; revisit later"
+#                            grouped by horizon: near / mid / far.
+#
+# NOTE (2026-06-13): rewritten for Axiology.jl. The file the estate branch
+# carried was the un-substituted rsr-template-repo Intentfile (its intents
+# were "repo-initialization / contractile-completeness for the template").
+
+[metadata]
+name = "Axiology.jl-intentfile"
+project = "Axiology.jl"
+schema_version = "1.0"
+version = "1.0.0"
+last-updated = "2026-06-13"
+
+@abstract:
+North-star for Axiology.jl: making ethical and economic values explicit,
+verifiable, and composable for machine learning systems. The invariant goal
+is that value alignment — fairness, welfare, safety, efficiency — is first-class
+in both the type system and the satisfaction API.
+@end
+
+## Purpose
+
+Axiology.jl makes values explicit, verifiable, and composable for ML systems.
+It provides a Julia framework for defining value types (Fairness, Welfare,
+Profit, Efficiency, Safety), checking whether ML model states satisfy those
+values, finding Pareto frontiers across competing objectives, and laying the
+groundwork for formal verification of value properties via the Idris2 ABI
+and Zig FFI layers.
+
+## Anti-Purpose
+
+Axiology.jl is NOT:
+- a general-purpose ML framework (it is a value-specification and checking layer)
+- a replacement for fairness auditing tooling (it is a compositional API, not a scanner)
+- a proof assistant (the Idris2 ABI and src/abi/ back the library; they are not the product)
+- directly integrated with TensorFlow/PyTorch (users supply model outputs as Dict state)
+
+## If In Doubt
+
+Sensitive areas — ask before changing: `src/types.jl` (value type hierarchy),
+`src/abi/` (formal ABI definitions), `ffi/zig/` (C-ABI boundary),
+`.machine_readable/` (checkpoint format).
+
+## Committed Next-Actions
+
+### ml-framework-bridges
+- description: integration adapters for common ML frameworks (Flux.jl, MLJ.jl)
+- probe: test -f src/bridges.jl || test -d src/bridges/
+- status: declared
+- notes: currently users must format model outputs manually as Dict state
+
+### formal-verification-phase2
+- description: Idris2 proofs of value satisfaction properties wired into CI
+- probe: test -d src/abi/ && ls src/abi/*.idr 2>/dev/null | grep -q .
+- status: declared
+- notes: ABI-FFI-README.md describes the intended proof structure
+
+### pareto-scalability
+- description: Pareto frontier computation improved beyond O(n²) for large config spaces
+- probe: grep -q 'approximation\|scalable' src/optimization.jl
+- status: declared
+- notes: documented in EXPLAINME.adoc as a known caveat
+
+## Wishes
+
+### Near Horizon
+#### equalized-odds-support
+- description: equalized odds fairness metric (in addition to demographic parity / disparate impact)
+- horizon: near
+- status: declared
+
+### Mid Horizon
+#### value-composition-algebra
+- description: formal algebra for composing value constraints (conjunction, disjunction, priority)
+- horizon: mid
+- status: declared
+
+### Far Horizon
+#### runtime-value-monitoring
+- description: online monitoring of value satisfaction during model inference
+- horizon: far
+- status: declared

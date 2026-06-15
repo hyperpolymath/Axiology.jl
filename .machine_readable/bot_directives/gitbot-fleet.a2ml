@@ -1,0 +1,47 @@
+# SPDX-License-Identifier: MPL-2.0
+# gitbot-fleet.a2ml — gitbot fleet directives for Axiology.jl.
+# Net-new at the 2026-06-13 governance checkpoint per the estate
+# bot_directives standard. Fleet roster taken from the repo's existing
+# per-bot directive files (.machine_readable/bot_directives/*.a2ml).
+
+[metadata]
+name = "Axiology.jl-gitbot-fleet"
+project = "Axiology.jl"
+schema_version = "1.0"
+repo = "Axiology.jl"
+last-updated = "2026-06-13"
+owner = "hyperpolymath"
+
+[fleet]
+# Existing per-bot files present: coverage.a2ml, debt.a2ml, methodology.a2ml
+# (pre-estate agent_instructions content, now under bot_directives).
+# No named per-bot fleet files beyond the methodology trio as of 2026-06-13.
+bots = ["dependabot", "robot-repo-automaton"]
+
+[fleet.roles]
+dependabot = "dependency updates (dependabot.yml present)"
+robot-repo-automaton = "repo automation / scaffolding"
+
+[branch-policy]
+working-branch-pattern = "<bot>/<topic>"     # human sessions use claude/<slug>; bots use their own prefix
+draft-PRs-only = true
+ci-green-before-merge = true
+never-touch = [
+  "src/abi/",               # ABI definitions: changes require proof update
+  "ffi/zig/",               # C-ABI boundary: changes affect all language bindings
+  ".machine_readable/",     # checkpoint files: format is specified
+  ".github/workflows/",     # CI hardening is review-gated, not bot-edited
+  "PROOF-NEEDS.md",         # formal verification spec
+]
+
+# ============================================================
+# Per-bot constraints
+# ============================================================
+
+[per-bot.dependabot]
+allow = ["Julia dependency bumps via dependabot.yml", "GitHub Actions group bumps"]
+deny = ["bumping Julia version below 1.9 (Project.toml compat)"]
+note = "dependabot-automerge.yml exists; the Julia test suite is the compatibility gate."
+
+[per-bot.robot-repo-automaton]
+note = "Scaffolding/standardisation follows the rsr-template-repo standard AS OBSERVED in the estate (flat contractiles, self-validating/, bot_directives/), NOT the template's stale Mustfile (which still checks the old nested layout — see Mustfile.a2ml header). Report template drift via issue."

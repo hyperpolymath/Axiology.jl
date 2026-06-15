@@ -1,0 +1,89 @@
+# SPDX-License-Identifier: MPL-2.0
+# Adjustfile.a2ml — Drift-tolerance contract for Axiology.jl
+# Author: Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
+#
+# Cumulative-drift catchment: tolerance bands + corrective actions.
+# Authority: advisory (Yard) — continue-with-warnings; auto_fix where deterministic.
+# Run with: adjust check    Fix with: adjust fix
+#
+# NOTE (2026-06-13): rewritten for Axiology.jl. The estate-carried file was
+# the rsr-template-repo Adjustfile (drift checks about "template placeholders"
+# and "template version drift").
+
+[metadata]
+name = "Axiology.jl-adjustfile"
+project = "Axiology.jl"
+schema_version = "1.0"
+version = "1.0.0"
+last-updated = "2026-06-13"
+
+@abstract:
+Drift tolerances and corrective actions for Axiology.jl. Unlike MUST (hard
+gate), ADJUST tracks cumulative drift against tolerance bands and proposes
+corrective actions. Advisory — it warns and trends, it does not block.
+@end
+
+## Metadata Drift
+
+### state-currency
+- description: 6a2/STATE.a2ml last-updated should track real activity
+- tolerance: last-updated within ~60 days of the most recent feature commit
+- corrective: refresh .machine_readable/6a2/STATE.a2ml (build snapshot + milestones)
+- severity: advisory
+
+### completion-accuracy
+- description: completion-percentage in STATE.a2ml should reflect real status
+- tolerance: percentage within ±15 of actual feature coverage
+- corrective: re-read TOPOLOGY.md and README.adoc and update the figure
+- severity: advisory
+- notes: README badge currently shows 65%; STATE previously showed 0 — now corrected
+
+## Governance Drift
+
+### no-template-identity-leak
+- description: contractiles must describe Axiology.jl, not rsr-template-repo
+- tolerance: 0 contractiles claiming to be the canonical template
+- corrective: substitute repo identity; rewrite template-role prose for Axiology.jl
+- severity: advisory
+- notes: the estate flat-contractile set shipped un-substituted (see Mustfile/Intentfile/Trustfile/Adjustfile headers); all four rewritten 2026-06-13
+
+### contractile-completeness
+- description: all six flat contractiles + Justfile present
+- tolerance: Adjust/Bust/Dust/Intent/Must/Trust .a2ml + Justfile all exist
+- corrective: add the missing contractile
+- severity: advisory
+
+## Code & Test Drift
+
+### test-baseline
+- description: Julia test count should not silently regress
+- tolerance: >= 43 tests passing (43/45 is the current documented baseline)
+- corrective: investigate dropped/ignored tests before merge
+- severity: advisory
+
+### ffi-source-present
+- description: Zig FFI source exists and is complete
+- tolerance: ffi/zig/build.zig, ffi/zig/src/main.zig, ffi/zig/test/integration_test.zig all present
+- corrective: restore any inadvertently deleted FFI files
+- severity: advisory
+
+## Hygiene Drift
+
+### spdx-header-consistency
+- description: all source files carry an SPDX-License-Identifier
+- tolerance: 0 source files (*.jl, *.zig, *.toml) missing SPDX headers
+- corrective: add MPL-2.0 SPDX headers
+- severity: advisory
+
+### doc-currency
+- description: EXPLAINME.adoc and README.adoc should reflect actual exported functions
+- tolerance: all exports documented or referenced
+- corrective: audit exported names against documentation
+- severity: advisory
+
+### no-template-identity-leak-band
+- description: drift band that tracks the template-leak fix
+- tolerance: 0 contractile files contain unqualified "rsr-template-repo" identity claims
+- corrective: run: grep -rln 'rsr-template-repo' .machine_readable/contractiles/ | grep -v 'NOTE'
+- severity: advisory
+- notes: fixed 2026-06-13; this band guards against regression

@@ -1,0 +1,89 @@
+# SPDX-License-Identifier: MPL-2.0
+# Bustfile.a2ml — breakage contract for Axiology.jl: what counts as a
+# busted state, how it is detected, and how to respond.
+#
+# Format: TOML-A2ML (parses with tomllib; `#` comments, [section], key = "value")
+#
+# Provenance: flat-contractile completion of the estate layout (the estate
+# branch supplied Adjustfile/Intentfile/Justfile/Mustfile/Trustfile but no
+# flat Bustfile; the pre-estate nested contractiles/bust/ is superseded
+# by this flat form). Added 2026-06-13.
+
+[bustfile]
+name = "Axiology.jl-bustfile"
+project = "Axiology.jl"
+schema_version = "1.0"
+version = "1.0.0"
+format = "a2ml"
+repo = "Axiology.jl"
+last-updated = "2026-06-13"
+
+# ============================================================
+# Busted-state definition (any one of these means the repo is busted)
+# ============================================================
+
+[definition]
+busted-states = [
+  "julia --project=. -e 'using Pkg; Pkg.test()' fails (test baseline regresses below 43/45)",
+  "julia --project=. -e 'using Axiology' fails to load",
+  "Project.toml is missing or malformed",
+  "main is red on the governance / hypatia-scan / ci / scorecard workflows",
+  "a new unacknowledged hardcoded absolute path appears in Julia source",
+  "src/abi/ or ffi/zig/ modified without ABI proof update",
+]
+
+# ============================================================
+# Detection (run these to decide whether the repo is busted)
+# ============================================================
+
+[[detection]]
+name = "julia-load"
+doc = "Package loads without error."
+run = "julia --project=. -e 'using Axiology; println(\"loaded\")'"
+severity = "critical"
+
+[[detection]]
+name = "julia-tests"
+doc = "Full test suite (43/45 baseline)."
+run = "julia --project=. -e 'using Pkg; Pkg.test()'"
+severity = "critical"
+
+[[detection]]
+name = "project-toml"
+doc = "Project.toml is present and parseable."
+run = "julia --project=. -e 'using TOML; TOML.parsefile(\"Project.toml\"); println(\"ok\")'"
+severity = "critical"
+
+[[detection]]
+name = "ffi-source-present"
+doc = "Zig FFI source files exist."
+run = "test -f ffi/zig/build.zig && test -f ffi/zig/src/main.zig"
+severity = "high"
+
+# ============================================================
+# Response ladder (in order; stop at the first step that restores green)
+# ============================================================
+
+[response]
+step-1 = "Do not merge anything while a critical detection fails on main; CI green precedes merge."
+step-2 = "If the breakage is uncommitted local work: run the Dustfile source-rollback task (git checkout HEAD -- .), rebuild, re-detect."
+step-3 = "If the breakage landed on a branch: fix forward on that branch or close it superseded; never force-push over another session's work without re-fetching."
+step-4 = "If the breakage landed on main: git revert the offending commit (main is append-only; no force-push to main)."
+step-5 = "Record the incident: open an issue with the failing command + output."
+
+[escalation]
+owner = "hyperpolymath"
+contact = "MAINTAINERS.adoc"
+bot-rule = "automated agents open an issue and stop; they do not auto-revert main, do not auto-merge fixes, and do not spam PR comments"
+
+# ============================================================
+# Known exceptions (NOT busted states; do not 'fix' these)
+# ============================================================
+
+[[known-exceptions]]
+name = "two-failing-tests"
+detail = "43/45 tests pass as of 2026-06-13; 2 tests fail. This is the documented baseline per README.adoc '43/45 tests passing'. Do not treat the 2 known failures as regression unless the count drops below 43."
+
+[[known-exceptions]]
+name = "zig-not-installed"
+detail = "The Zig FFI layer requires zig to build. If zig is absent in the environment, ffi/zig/build.zig cannot be compiled. This is a toolchain absence, not a breakage. CI handles this via conditional."
