@@ -28,6 +28,6 @@ jobs:
       - uses: julia-actions/setup-julia@fa02766e078afaaf09b14210362cee14137e6a32 # v3.0.2
         with:
           version: ${{ matrix.julia-version }}
-      - uses: julia-actions/cache@a45e8fa8be21c18a06b7177052533149e61e9b38 # v2
+      - uses: julia-actions/cache@b7788abd52452d5bc033d69796e110d9906af4ab # v2
       - name: Install, build, test
         run: julia --project=. -e 'using Pkg; Pkg.instantiate(); Pkg.build(); Pkg.test()'
