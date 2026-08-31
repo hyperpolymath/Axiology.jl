@@ -6,11 +6,12 @@ set -u
 scan_root="${1:-}"
 results_file="${2:-}"
 blocking_results_file="${3:-}"
+leading_bom_results_file="${4:-}"
 grep_bin="${INVISIBLE_GREP_BIN:-grep}"
 find_bin="${INVISIBLE_FIND_BIN:-find}"
 
 if [[ -z "$scan_root" || ! -d "$scan_root" || -z "$results_file" ]]; then
-  echo "usage: $0 SCAN_ROOT RESULTS_FILE" >&2
+  echo "usage: $0 SCAN_ROOT RESULTS_FILE [BLOCKING_RESULTS_FILE] [LEADING_BOM_RESULTS_FILE]" >&2
   exit 2
 fi
 
@@ -18,9 +19,13 @@ fi
 # byte in the file is invalid UTF-8, while excluding permitted TAB/LF/CR bytes.
 pattern='[\x00-\x08\x0B\x0C\x0E-\x1F]|\xC2(?:\xA0|\xAD)|\xE2\x80[\x8B-\x8F\xAA-\xAF]|\xE2\x81(?:\xA0|[\xA6-\xA9])|\xEF\xBB\xBF'
 blocking_pattern='[\x00-\x08\x0B\x0C\x0E-\x1F]'
+leading_bom_pattern='\A\xEF\xBB\xBF'
 : > "$results_file" || exit 2
 if [[ -n "$blocking_results_file" ]]; then
   : > "$blocking_results_file" || exit 2
+fi
+if [[ -n "$leading_bom_results_file" ]]; then
+  : > "$leading_bom_results_file" || exit 2
 fi
 scan_error=0
 enumeration_file="$(mktemp /tmp/rsr-invisible-files.XXXXXX)" || exit 2
@@ -59,6 +64,15 @@ while IFS= read -r -d '' filepath; do
           0) printf '%s\0' "$filepath" >> "$blocking_results_file" || scan_error=1 ;;
           1) ;;
           *) echo "blocking-classifier error ($blocking_status): $filepath" >&2; scan_error=1 ;;
+        esac
+      fi
+      if [[ -n "$leading_bom_results_file" ]]; then
+        LC_ALL=C "$grep_bin" -aPzoq "$leading_bom_pattern" "$filepath"
+        leading_bom_status=$?
+        case "$leading_bom_status" in
+          0) printf '%s\0' "$filepath" >> "$leading_bom_results_file" || scan_error=1 ;;
+          1) ;;
+          *) echo "leading-bom-classifier error ($leading_bom_status): $filepath" >&2; scan_error=1 ;;
         esac
       fi
       ;;

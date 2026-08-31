@@ -15,6 +15,7 @@ trap cleanup EXIT
 scanner="$repo_root/scripts/check-invisible-characters.sh"
 results="$fixture_root/results.bin"
 blocking_results="$fixture_root/blocking-results.bin"
+leading_bom_results="$fixture_root/leading-bom-results.bin"
 fixtures="$fixture_root/fixtures"
 mkdir -p "$fixtures"
 
@@ -24,14 +25,16 @@ printf 'soft-hyphen:\302\255\n' > "$fixtures/soft-hyphen.adoc"
 printf 'zero-width:\342\200\213\n' > "$fixtures/zero-width.json"
 printf 'bidi:\342\200\256\n' > "$fixtures/bidi.toml"
 printf 'word-joiner:\342\201\240\n' > "$fixtures/word-joiner.yml"
-printf '\357\273\277leading bom\n' > "$fixtures/bom.sh"
+printf '\357\273\277leading bom\n' > "$fixtures/bom-leading.sh"
+printf 'mid\357\273\277bom\n' > "$fixtures/bom-mid.sh"
+printf 'first\n\357\273\277second\n' > "$fixtures/bom-after-newline.sh"
 printf 'nul:\000byte\n' > "$fixtures/nul.rs"
 printf 'backspace:\010byte\n' > "$fixtures/backspace.rs"
 printf 'invalid:\377 then nbsp:\302\240\n' > "$fixtures/invalid-utf8.md"
 printf 'newline name:\302\240\n' > "$fixtures/with
 newline.md"
 
-"$scanner" "$fixtures" "$results" "$blocking_results"
+"$scanner" "$fixtures" "$results" "$blocking_results" "$leading_bom_results"
 
 count=0
 safe_seen=false
@@ -42,8 +45,8 @@ while IFS= read -r -d '' filepath; do
   [[ "$filepath" == "$fixtures/with"$'\n'"newline.md" ]] && newline_seen=true
 done < "$results"
 
-[[ "$count" -eq 10 ]] || {
-  echo "expected 10 findings, got $count" >&2
+[[ "$count" -eq 12 ]] || {
+  echo "expected 12 findings, got $count" >&2
   exit 1
 }
 [[ "$safe_seen" == false ]] || {
@@ -65,6 +68,21 @@ while IFS= read -r -d '' filepath; do
 done < "$blocking_results"
 [[ "$blocking_count" -eq 2 && "$nul_blocked" == true && "$backspace_blocked" == true ]] || {
   echo "expected only NUL and backspace fixtures in the blocking set" >&2
+  exit 1
+}
+
+leading_bom_count=0
+leading_bom_found=false
+mid_bom_found=false
+bom_after_newline_found=false
+while IFS= read -r -d '' filepath; do
+  leading_bom_count=$((leading_bom_count + 1))
+  [[ "$filepath" == "$fixtures/bom-leading.sh" ]] && leading_bom_found=true
+  [[ "$filepath" == "$fixtures/bom-mid.sh" ]] && mid_bom_found=true
+  [[ "$filepath" == "$fixtures/bom-after-newline.sh" ]] && bom_after_newline_found=true
+done < "$leading_bom_results"
+[[ "$leading_bom_count" -eq 1 && "$leading_bom_found" == true && "$mid_bom_found" == false && "$bom_after_newline_found" == false ]] || {
+  echo "expected only leading BOM fixture in the leading-bom set, got $leading_bom_count (leading: $leading_bom_found, mid: $mid_bom_found, after-newline: $bom_after_newline_found)" >&2
   exit 1
 }
 
