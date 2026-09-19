@@ -221,7 +221,7 @@ Initial release with foundational value theory:
 
 == Contributing
 
-See link:CONTRIBUTING.md[CONTRIBUTING.md] for details.
+See link:.github/CONTRIBUTING.md[CONTRIBUTING.md] for details.
 
 Priority areas for contributors:
 
