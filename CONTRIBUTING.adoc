@@ -13,7 +13,9 @@ This repository ships a `Justfile`; `just` lists the available recipes.
 
 [source,bash]
 ----
-git clone git@github.com:hyperpolymath/Axiology.jl.git
+git clone https://github.com/hyperpolymath/Axiology.jl.git
+# Or, with a configured GitHub SSH key:
+# git clone git@github.com:hyperpolymath/Axiology.jl.git
 cd Axiology.jl
 just            # lists the available recipes
 ----
