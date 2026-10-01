@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "Axiology.jl"
+abstract: "Julia package: Axiology"
+authors:
+  - family-names: "Jewell"
+    given-names: "Jonathan D.A."
+    orcid: "https://orcid.org/0000-0002-3078-6652"
+repository-code: "https://github.com/hyperpolymath/Axiology.jl"
+keywords:
+  - "julia"
+  - "open-source"
+  - "computational-science"
+  - "epistemic-computing"
+  - "epistemic-infrastructure"
+  - "equivalence-aware-computing"
+  - "hyperpolymath"
+  - "julia-package"
+  - "machine-ethics"
+  - "reproducible-research"
+  - "research-software"
+  - "scientific-software"
+  - "typed-provenance"
+  - "value-theory"
+  - "veridical-computing"
+  - "normative-ai"
