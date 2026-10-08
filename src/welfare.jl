@@ -341,7 +341,8 @@ _receipt_get(receipt::AbstractDict, key::AbstractString) =
 Return whether `proof` carries a `schema` key and so should be read as a
 prove-result receipt rather than a plain `:verified` attestation.
 """
-_is_receipt(proof::AbstractDict)::Bool = !isnothing(_receipt_get(proof, "schema"))
+_is_receipt(proof::AbstractDict)::Bool =
+    haskey(proof, "schema") || haskey(proof, :schema)
 
 """
     _receipt_field(receipt::AbstractDict, key::AbstractString, T::Type)
