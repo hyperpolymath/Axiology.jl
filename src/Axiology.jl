@@ -22,8 +22,11 @@ computational form so they can be stated, scored and compared:
 4. **Multi-objective comparison** — `value_score`, `weighted_score`,
    `normalize_scores`, `dominated` and `pareto_frontier` compare candidate
    states across several values without hiding the trade-offs.
-5. **Verification attestations** — `verify_value` checks the shape of a
-   caller-supplied proof attestation. It does not run a prover.
+5. **Verification evidence** — `verify_value` checks the shape of a
+   caller-supplied attestation, and `verify_receipt` strictly checks an ECHIDNA
+   `echidna.prove.result/1` receipt. Neither runs a prover. `safety_verdict`
+   reports `:entailed`, `:refuted` or `:unresolved` so missing safety evidence
+   stays visible.
 
 # Example
 
@@ -65,6 +68,7 @@ export disparate_impact_metric, individual_fairness_metric
 export utilitarian_metric, rawlsian_metric, egalitarian_metric
 export pareto_metric, kaldor_hicks_metric, computation_time_metric
 export satisfy, maximize, verify_value
+export verify_receipt, safety_verdict, PROVE_RESULT_SCHEMA
 export pareto_frontier, dominated, value_score
 export weighted_score, normalize_scores
 

@@ -154,7 +154,14 @@ value's `weight`. Returns `0.0` when every weight is zero.
 This collapses several objectives into one number, so it is only meaningful
 when the individual scores share a scale; un-normalised `Welfare` scores (no
 `:max_welfare` in `state`) and `Profit`/`Efficiency` ratios can dominate the
-average. Use `dominated`/`pareto_frontier` to compare without collapsing.
+average. A poor score on one value can also be bought back by another, even a
+critical `Safety`.
+
+The collapse is lossy: different score profiles map to the same number, so no
+function can recover the profile from the result (it has no section — the
+mechanised statement is `no-section-of-collapsing-map` in
+`hyperpolymath/echo-types`). Use `dominated`/`pareto_frontier` to compare
+without collapsing.
 """
 function weighted_score(values::Vector{<:Value}, state::Dict)::Float64
     total_weight = sum(v.weight for v in values)

@@ -271,8 +271,12 @@ the attestation — `proof[:verified]` must be present and a `Bool` — and retu
 it. For a critical `Safety` value a positive attestation must also name its
 `:prover`; any `:details` are logged. Producing the proof, and trusting it, is
 the caller's responsibility.
+
+When `proof` is a parsed ECHIDNA `echidna.prove.result/1` receipt (it has a
+`"schema"` key), the stricter `verify_receipt` is applied instead.
 """
 function verify_value(value::Value, proof::Dict)::Bool
+    _is_receipt(proof) && return verify_receipt(value, proof)
     # Require verified field to be a Bool
     verified = get(proof, :verified, nothing)
     isnothing(verified) && error("proof must contain :verified field")
@@ -288,6 +292,7 @@ As `verify_value(::Value, ::Dict)`, and additionally require a `:prover` entry
 when `value.critical` and the attestation is positive.
 """
 function verify_value(value::Safety, proof::Dict)::Bool
+    _is_receipt(proof) && return verify_receipt(value, proof)
     # Require verified field to be a Bool
     verified = get(proof, :verified, nothing)
     isnothing(verified) && error("proof must contain :verified field")
@@ -308,4 +313,123 @@ function verify_value(value::Safety, proof::Dict)::Bool
     end
 
     return verified
+end
+
+"""
+    PROVE_RESULT_SCHEMA
+
+The schema identifier of the ECHIDNA prove-result receipt that
+`verify_receipt` accepts: `"echidna.prove.result/1"`.
+"""
+const PROVE_RESULT_SCHEMA = "echidna.prove.result/1"
+
+# The statuses the /1 schema defines; a new status needs a new schema id.
+const _PROVE_STATUSES = ("verified", "failed", "error", "timeout", "unknown")
+
+"""
+    _receipt_get(receipt::AbstractDict, key::AbstractString)
+
+Look `key` up in a parsed receipt whose keys may be `String`s (e.g. JSON.jl)
+or `Symbol`s (e.g. JSON3.jl); return `nothing` when it is absent.
+"""
+_receipt_get(receipt::AbstractDict, key::AbstractString) =
+    haskey(receipt, key) ? receipt[key] : get(receipt, Symbol(key), nothing)
+
+"""
+    _is_receipt(proof::AbstractDict)::Bool
+
+Return whether `proof` carries a `schema` key and so should be read as a
+prove-result receipt rather than a plain `:verified` attestation.
+"""
+_is_receipt(proof::AbstractDict)::Bool = !isnothing(_receipt_get(proof, "schema"))
+
+"""
+    _receipt_field(receipt::AbstractDict, key::AbstractString, T::Type)
+
+Return the required receipt field `key`, throwing an `ArgumentError` when it
+is missing or is not a `T`.
+"""
+function _receipt_field(receipt::AbstractDict, key::AbstractString, T::Type)
+    v = _receipt_get(receipt, key)
+    v isa T || throw(ArgumentError("$(PROVE_RESULT_SCHEMA) receipt field `$(key)` must be a $(T), got $(repr(v))"))
+    return v
+end
+
+"""
+    verify_receipt(value::Value, receipt::AbstractDict;
+                   goal::Union{Nothing,AbstractString} = nothing,
+                   allow_axioms = String[])::Bool
+
+Check a parsed ECHIDNA `echidna.prove.result/1` receipt (the one-line JSON
+object printed by `echidna prove <file> --output json`) and return whether it
+establishes its goal without unaccepted assumptions.
+
+The receipt must be well formed under the schema — `schema`, `status`
+(`verified`, `failed`, `error`, `timeout` or `unknown`), `prover`, `goal` and
+`trust.axioms` — or an `ArgumentError` is thrown; unknown extra fields are
+ignored, as the schema requires. The result is `true` only when
+
+- `status == "verified"` and `prover` is non-empty;
+- every entry of `trust.axioms` (axioms and escape hatches such as `sorry`,
+  `Admitted` or `postulate` that ECHIDNA found) is listed in `allow_axioms`;
+- the receipt's `goal` equals `goal`, when `goal` is given.
+
+Parse the JSON with any parser (`String` or `Symbol` keys both work); this
+package does not run ECHIDNA. A receipt is transported evidence that a prover
+checked the goal *file*: whether that file states the property `value`
+expresses is the caller's claim, and passing `goal` is how that binding is made
+explicit. ECHIDNA reports `trust.confidence` as `null` because it checks no
+independent certificate; this function does not use it.
+
+The receipt-versus-warrant reading follows ECHIDNA's
+`docs/PROVE-RESULT-CONTRACT.adoc` and the factive/non-factive distinction of
+`hyperpolymath/epistemic-types`.
+"""
+function verify_receipt(value::Value, receipt::AbstractDict;
+                        goal::Union{Nothing,AbstractString} = nothing,
+                        allow_axioms = String[])::Bool
+    schema = _receipt_get(receipt, "schema")
+    schema == PROVE_RESULT_SCHEMA ||
+        throw(ArgumentError("not a $(PROVE_RESULT_SCHEMA) receipt (schema = $(repr(schema)))"))
+    status = _receipt_field(receipt, "status", AbstractString)
+    status in _PROVE_STATUSES ||
+        throw(ArgumentError("status $(repr(status)) is not defined by $(PROVE_RESULT_SCHEMA)"))
+    prover = _receipt_field(receipt, "prover", AbstractString)
+    receipt_goal = _receipt_field(receipt, "goal", AbstractString)
+    trust = _receipt_field(receipt, "trust", AbstractDict)
+    axioms = _receipt_field(trust, "axioms", AbstractVector)
+    all(a -> a isa AbstractString, axioms) ||
+        throw(ArgumentError("$(PROVE_RESULT_SCHEMA) receipt field `trust.axioms` must hold strings"))
+
+    status == "verified" || return false
+    isempty(prover) && return false
+    isnothing(goal) || receipt_goal == goal || return false
+    allowed = Set{String}(String.(allow_axioms))
+    return all(a -> String(a) in allowed, axioms)
+end
+
+"""
+    safety_verdict(value::Safety, state::Dict)::Symbol
+
+Return a three-valued verdict on `value` for `state`:
+
+- `:refuted` when `state[:is_safe]` or `state[:invariant_holds]` is `false`;
+- `:entailed` when both are present and `true`;
+- `:unresolved` otherwise — the evidence is missing, so safety is neither
+  established nor ruled out.
+
+Unlike `satisfy(::Safety, ::Dict)`, which treats absent keys as safe, this keeps
+missing evidence visible. Non-`Bool` values throw an `ArgumentError`. The verdict
+names follow `hyperpolymath/ResidualEvidenceTypes.jl` (`ENTAILED` / `REFUTED` /
+`UNRESOLVED`); this package does not depend on it.
+"""
+function safety_verdict(value::Safety, state::Dict)::Symbol
+    flags = (get(state, :is_safe, nothing), get(state, :invariant_holds, nothing))
+    for f in flags
+        isnothing(f) || f isa Bool ||
+            throw(ArgumentError("Safety evidence (:is_safe, :invariant_holds) must be Bool, got $(repr(f))"))
+    end
+    any(f -> f === false, flags) && return :refuted
+    all(f -> f === true, flags) && return :entailed
+    return :unresolved
 end
