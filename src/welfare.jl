@@ -3,16 +3,38 @@
 
 using Statistics
 
+"""
+    utilitarian_welfare(utilities::AbstractVector)::Float64
+
+Return the utilitarian (Benthamite) social welfare: the sum of individual
+utilities. An empty vector has welfare `0.0`.
+"""
 function utilitarian_welfare(utilities::AbstractVector)::Float64
     isempty(utilities) && return 0.0 # Return 0.0 for empty utility vector
     return sum(utilities)
 end
 
+"""
+    rawlsian_welfare(utilities::AbstractVector)::Float64
+
+Return the Rawlsian (maximin) social welfare: the utility of the worst-off
+individual. Raises an error for an empty vector, where no worst-off individual
+exists.
+"""
 function rawlsian_welfare(utilities::AbstractVector)::Float64
     isempty(utilities) && error("Cannot compute Rawlsian welfare for an empty utility vector.")
     return minimum(utilities)
 end
 
+"""
+    egalitarian_welfare(utilities::AbstractVector{<:Real})::Float64
+
+Return an egalitarian welfare score: the negated sample variance of the
+utilities, so that more equal distributions score higher and perfect equality
+scores `0.0`. Fewer than two individuals score `0.0`.
+
+This measures equality only; it does not reward higher utility levels.
+"""
 function egalitarian_welfare(utilities::AbstractVector{<:Real})::Float64
     if length(utilities) < 2
         # Variance of a single element or empty set is undefined or 0 (which is equality).
@@ -23,6 +45,25 @@ function egalitarian_welfare(utilities::AbstractVector{<:Real})::Float64
     return -var(utilities)
 end
 
+"""
+    satisfy(value::Value, state::Dict)::Bool
+
+Return whether the system state `state` meets the criterion expressed by
+`value`. Each `Value` subtype reads its own keys from `state`:
+
+- `Fairness`: see `satisfy(::Fairness, ::Dict)`.
+- `Welfare`: `:utilities` (required); passes when the chosen welfare function is
+  at least `:min_welfare` (default `0.0`).
+- `Profit`: `:profit` (required); passes when it reaches `value.target` and every
+  `value.constraints` entry is itself satisfied by `state`.
+- `Efficiency`: `:computation_time` (`<= target`), `:is_pareto_efficient`
+  (must be `true`) or `:net_gain` (`>= target`), according to `value.metric`.
+- `Safety`: `:is_safe` and `:invariant_holds`. **Both default to `true` when
+  absent**, so an empty state counts as safe; supply them explicitly. The
+  `value.invariant` text is descriptive and is not evaluated.
+
+Missing required keys raise an error.
+"""
 function satisfy(value::Welfare, state::Dict)::Bool
     utilities = get(state, :utilities, nothing)
     isnothing(utilities) && error("State must contain :utilities for Welfare satisfaction check.")
@@ -42,6 +83,12 @@ function satisfy(value::Welfare, state::Dict)::Bool
     return computed_welfare >= min_welfare
 end
 
+"""
+    satisfy(value::Profit, state::Dict)::Bool
+
+Return whether `state[:profit]` reaches `value.target` and every constraint in
+`value.constraints` is satisfied by the same `state`.
+"""
 function satisfy(value::Profit, state::Dict)::Bool
     current_profit = get(state, :profit, nothing) # Use nothing to distinguish from actual 0.0 profit
     isnothing(current_profit) && error("State must contain :profit for Profit satisfaction check.")
@@ -55,6 +102,13 @@ function satisfy(value::Profit, state::Dict)::Bool
     return profit_ok && constraints_ok
 end
 
+"""
+    satisfy(value::Efficiency, state::Dict)::Bool
+
+Return whether `state` meets the efficiency criterion: `:computation_time <=
+target`, `:is_pareto_efficient == true`, or `:net_gain >= target`, according to
+`value.metric`.
+"""
 function satisfy(value::Efficiency, state::Dict)::Bool
     if value.metric == :computation_time
         time = get(state, :computation_time, nothing)
@@ -73,6 +127,13 @@ function satisfy(value::Efficiency, state::Dict)::Bool
     end
 end
 
+"""
+    satisfy(value::Safety, state::Dict)::Bool
+
+Return `state[:is_safe] && state[:invariant_holds]`. Both keys default to
+`true` when absent, so an empty state is reported as safe; callers must supply
+them. `value.invariant` is not evaluated.
+"""
 function satisfy(value::Safety, state::Dict)::Bool
     # Check if safety invariant is satisfied in state
     is_safe = get(state, :is_safe, true) # Optimistic assumption if not provided
@@ -81,6 +142,22 @@ function satisfy(value::Safety, state::Dict)::Bool
     return is_safe && invariant_holds
 end
 
+"""
+    maximize(value::Value, initial_state::Dict)::Float64
+
+Return the objective that `value` would maximise, evaluated at `initial_state`
+(higher is better). This *evaluates* the objective at the given state; it does
+not search a configuration space or change the state.
+
+- `Welfare`: the chosen welfare function of `:utilities`.
+- `Profit`: `:profit`.
+- `Efficiency`: `-:computation_time`, `1.0`/`0.0` for `:is_pareto_efficient`,
+  or `:net_gain`.
+- `Fairness`: `1 - disparity` for the disparity metrics, the ratio for
+  `:disparate_impact`; `0.0` when the required data is missing.
+- `Safety`: `1.0` when safe, else `0.0` (with the same `true` defaults as
+  `satisfy(::Safety, ::Dict)`).
+"""
 function maximize(value::Welfare, initial_state::Dict)::Float64
     utilities = get(initial_state, :utilities, nothing)
     isnothing(utilities) && error("initial_state must contain :utilities for Welfare maximization.")
@@ -96,12 +173,23 @@ function maximize(value::Welfare, initial_state::Dict)::Float64
     end
 end
 
+"""
+    maximize(value::Profit, initial_state::Dict)::Float64
+
+Return `initial_state[:profit]`.
+"""
 function maximize(value::Profit, initial_state::Dict)::Float64
     profit = get(initial_state, :profit, nothing)
     isnothing(profit) && error("initial_state must contain :profit for Profit maximization.")
     return profit
 end
 
+"""
+    maximize(value::Efficiency, initial_state::Dict)::Float64
+
+Return the efficiency objective for `value.metric`: negated computation time,
+`1.0`/`0.0` for Pareto efficiency, or the Kaldor-Hicks net gain.
+"""
 function maximize(value::Efficiency, initial_state::Dict)::Float64
     if value.metric == :computation_time
         time = get(initial_state, :computation_time, nothing)
@@ -120,6 +208,13 @@ function maximize(value::Efficiency, initial_state::Dict)::Float64
     end
 end
 
+"""
+    maximize(value::Fairness, initial_state::Dict)::Float64
+
+Return a fairness objective where higher is fairer: `1 - disparity` for the
+disparity metrics and the ratio itself for `:disparate_impact`. Returns `0.0`
+when the data the metric needs is missing.
+"""
 function maximize(value::Fairness, initial_state::Dict)::Float64
     # Extract data from state
     predictions = get(initial_state, :predictions, nothing)
@@ -153,12 +248,30 @@ function maximize(value::Fairness, initial_state::Dict)::Float64
     end
 end
 
+"""
+    maximize(value::Safety, initial_state::Dict)::Float64
+
+Return `1.0` when `initial_state` is safe and `0.0` otherwise, with the same
+defaults as `satisfy(::Safety, ::Dict)`.
+"""
 function maximize(value::Safety, initial_state::Dict)::Float64
     is_safe = get(initial_state, :is_safe, true)
     invariant_holds = get(initial_state, :invariant_holds, true)
     return (is_safe && invariant_holds) ? 1.0 : 0.0
 end
 
+"""
+    verify_value(value::Value, proof::Dict)::Bool
+
+Check a caller-supplied verification *attestation* for `value` and return its
+`:verified` flag.
+
+This function does not run a prover or check a proof. It validates the shape of
+the attestation — `proof[:verified]` must be present and a `Bool` — and returns
+it. For a critical `Safety` value a positive attestation must also name its
+`:prover`; any `:details` are logged. Producing the proof, and trusting it, is
+the caller's responsibility.
+"""
 function verify_value(value::Value, proof::Dict)::Bool
     # Require verified field to be a Bool
     verified = get(proof, :verified, nothing)
@@ -168,6 +281,12 @@ function verify_value(value::Value, proof::Dict)::Bool
     return verified
 end
 
+"""
+    verify_value(value::Safety, proof::Dict)::Bool
+
+As `verify_value(::Value, ::Dict)`, and additionally require a `:prover` entry
+when `value.critical` and the attestation is positive.
+"""
 function verify_value(value::Safety, proof::Dict)::Bool
     # Require verified field to be a Bool
     verified = get(proof, :verified, nothing)
@@ -184,7 +303,7 @@ function verify_value(value::Safety, proof::Dict)::Bool
         # Log prover information if details are available
         details = get(proof, :details, nothing)
         if !isnothing(details)
-            @info "Safety proof from prover: $prover" details
+            @info "Safety attestation names prover: $prover" details
         end
     end
 

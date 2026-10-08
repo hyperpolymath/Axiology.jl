@@ -1,10 +1,49 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 
+"""
+    _require_nonzero_target(value::Value, field::AbstractString)
+
+Throw an `ArgumentError` explaining that a score normalised by a zero `field`
+is undefined, instead of letting the division return `Inf` or `NaN`.
+"""
+function _require_nonzero_target(value::Value, field::AbstractString)
+    throw(ArgumentError("value_score($(nameof(typeof(value)))) divides by `$(field)`, " *
+                        "which is 0.0, so the score is undefined; construct the value " *
+                        "with a non-zero `$(field)` to score it."))
+end
+
+"""
+    value_score(value::Value, state::Dict)::Float64
+
+Score how well `state` does on `value`, higher is better. The scale depends on
+the value type:
+
+- `Fairness`: `1 - disparity / threshold`, floored at `0.0`, so `1.0` is perfect
+  parity and `0.0` means the disparity reached the threshold. With
+  `threshold == 0.0` only exact parity scores `1.0`; anything else scores `0.0`.
+  `:disparate_impact` scores the ratio itself (clamped to `[0, 1]`) and
+  `:individual_fairness` scores `1 - mean difference`.
+- `Welfare`: the welfare function of `:utilities`, scaled to `[0, 1]` by
+  `:max_welfare` when the state provides a positive one; otherwise the **raw,
+  unbounded** welfare value.
+- `Profit`: `:profit / target`.
+- `Efficiency`: `1 - :computation_time / target` (floored at `0.0`),
+  `1.0`/`0.0` for `:is_pareto_efficient`, or `:net_gain / target`.
+- `Safety`: `1.0` when safe, else `0.0` (absent keys count as safe, as in
+  `satisfy(::Safety, ::Dict)`).
+
+The group fairness metrics read `:protected`, or `:protected_attributes` when
+`:protected` is absent.
+
+Scores normalised by a target (`Profit`, `Efficiency` `:computation_time` and
+`:kaldor_hicks`) throw an `ArgumentError` when that target is `0.0` rather than
+returning `Inf` or `NaN`. Note that `Profit()` has `target = 0.0` by default.
+"""
 function value_score(value::Value, state::Dict)::Float64
     if value isa Fairness
         predictions = get(state, :predictions, nothing)
-        protected = get(state, :protected, nothing)
+        protected = get(state, :protected, get(state, :protected_attributes, nothing))
         labels = get(state, :labels, nothing)
         similarity_matrix = get(state, :similarity_matrix, nothing)
 
@@ -36,6 +75,8 @@ function value_score(value::Value, state::Dict)::Float64
 
         # For disparity metrics, a lower disparity is better. Convert to score where 1.0 is optimal.
         # Normalize disparity relative to threshold. If disparity > threshold, score becomes < 0.
+        # A zero threshold tolerates no disparity at all: 0/0 would otherwise give NaN.
+        iszero(value.threshold) && return iszero(disparity) ? 1.0 : 0.0
         return max(0.0, 1.0 - disparity / value.threshold)
 
     elseif value isa Welfare
@@ -70,6 +111,7 @@ function value_score(value::Value, state::Dict)::Float64
     elseif value isa Profit
         profit = get(state, :profit, nothing)
         isnothing(profit) && error("State must contain :profit for Profit value_score.")
+        iszero(value.target) && _require_nonzero_target(value, "target")
         # Normalize profit relative to target
         return profit / value.target
 
@@ -77,6 +119,7 @@ function value_score(value::Value, state::Dict)::Float64
         if value.metric == :computation_time
             time = get(state, :computation_time, nothing)
             isnothing(time) && error("State must contain :computation_time for Efficiency value_score.")
+            iszero(value.target) && _require_nonzero_target(value, "target")
             # Lower time is better - invert and normalize
             return max(0.0, 1.0 - time / value.target)
         elseif value.metric == :pareto
@@ -86,6 +129,7 @@ function value_score(value::Value, state::Dict)::Float64
         elseif value.metric == :kaldor_hicks
             net_gain = get(state, :net_gain, nothing)
             isnothing(net_gain) && error("State must contain :net_gain for Efficiency value_score.")
+            iszero(value.target) && _require_nonzero_target(value, "target")
             return net_gain / value.target
         else
             error("Unknown efficiency metric: $(value.metric) for value_score.")
@@ -101,6 +145,17 @@ function value_score(value::Value, state::Dict)::Float64
     end
 end
 
+"""
+    weighted_score(values::Vector{<:Value}, state::Dict)::Float64
+
+Return the weight-averaged `value_score` of `state` across `values`, using each
+value's `weight`. Returns `0.0` when every weight is zero.
+
+This collapses several objectives into one number, so it is only meaningful
+when the individual scores share a scale; un-normalised `Welfare` scores (no
+`:max_welfare` in `state`) and `Profit`/`Efficiency` ratios can dominate the
+average. Use `dominated`/`pareto_frontier` to compare without collapsing.
+"""
 function weighted_score(values::Vector{<:Value}, state::Dict)::Float64
     total_weight = sum(v.weight for v in values)
 
@@ -113,6 +168,12 @@ function weighted_score(values::Vector{<:Value}, state::Dict)::Float64
     return weighted_sum / total_weight
 end
 
+"""
+    normalize_scores(scores::AbstractVector)::Vector{Float64}
+
+Min-max normalise `scores` to `[0, 1]`. If every score is equal the result is
+all ones. Throws an `ArgumentError` for an empty vector.
+"""
 function normalize_scores(scores::AbstractVector)::Vector{Float64}
     if isempty(scores)
         throw(ArgumentError("Cannot normalize an empty vector of scores."))
@@ -128,6 +189,13 @@ function normalize_scores(scores::AbstractVector)::Vector{Float64}
     return [(s - min_score) / (max_score - min_score) for s in scores]
 end
 
+"""
+    dominated(solution_a::Dict, solution_b::Dict, values::AbstractVector{<:Value})::Bool
+
+Return whether `solution_a` is Pareto-dominated by `solution_b`: `solution_b`
+scores at least as well as `solution_a` on every value in `values` and strictly
+better on at least one, comparing `value_score`s.
+"""
 function dominated(solution_a::Dict, solution_b::Dict, values::AbstractVector{<:Value})::Bool
     better_on_all = true
     strictly_better_on_one = false
@@ -147,6 +215,18 @@ function dominated(solution_a::Dict, solution_b::Dict, values::AbstractVector{<:
     return better_on_all && strictly_better_on_one
 end
 
+"""
+    pareto_frontier(solutions::Vector{<:Dict}, values::AbstractVector{<:Value})::Vector{Dict}
+    pareto_frontier(system::Dict, values::AbstractVector{<:Value})::Vector{Dict}
+
+Return the solutions that no other solution dominates on `values` (see
+`dominated`), in their original order.
+
+The `system::Dict` form takes candidate solutions from `system[:solutions]`, or
+treats `system` itself as the only candidate. Neither form generates
+candidates; it filters the ones supplied. Comparison is pairwise, `O(n²)` in
+the number of solutions.
+"""
 function pareto_frontier(solutions::Vector{<:Dict}, values::AbstractVector{<:Value})::Vector{Dict}
     if isempty(solutions)
         return eltype(solutions)[]
@@ -174,7 +254,7 @@ function pareto_frontier(solutions::Vector{<:Dict}, values::AbstractVector{<:Val
 end
 
 function pareto_frontier(system::Dict, values::AbstractVector{<:Value})::Vector{Dict}
-    # Generate candidate solutions by exploring the parameter space
+    # Candidate solutions are supplied by the caller; none are generated here.
     solutions = Dict[]
 
     # If system provides candidate solutions, use them
