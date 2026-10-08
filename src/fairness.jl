@@ -1,6 +1,23 @@
 # SPDX-License-Identifier: MPL-2.0
 # Copyright (c) 2026 Jonathan D.A. Jewell <j.d.a.jewell@open.ac.uk>
 
+"""
+    demographic_parity(predictions::AbstractVector, protected_attributes::AbstractVector)::Float64
+
+Return the demographic-parity disparity: the largest difference in mean
+prediction (the positive-prediction rate, for binary predictions) between any
+two protected groups. `0.0` means perfect parity.
+
+Returns `0.0` when fewer than two groups are present.
+
+# Example
+
+```julia
+predictions = [1, 0, 1, 1, 0, 1]
+protected = [:A, :A, :B, :B, :B, :A]
+demographic_parity(predictions, protected)  # 0.0 (both groups have rate 2/3)
+```
+"""
 function demographic_parity(predictions::AbstractVector, protected_attributes::AbstractVector)::Float64
     @assert length(predictions) == length(protected_attributes) "Lengths must match."
     unique_groups = unique(protected_attributes)
@@ -17,6 +34,28 @@ function demographic_parity(predictions::AbstractVector, protected_attributes::A
     return maximum(rates) - minimum(rates)
 end
 
+"""
+    equalized_odds(predictions::AbstractVector{<:Real}, labels::AbstractVector{<:Real},
+                   protected_attributes::AbstractVector)::Float64
+
+Return the equalized-odds disparity: the larger of the maximum between-group
+difference in true-positive rate (TPR) and in false-positive rate (FPR).
+`0.0` means the groups are treated alike on both rates.
+
+A group with no positive labels has no defined TPR and is left out of the TPR
+comparison; likewise a group with no negative labels is left out of the FPR
+comparison. Each comparison needs at least two groups with a defined rate and
+otherwise contributes `0.0`. Returns `0.0` when fewer than two groups are present.
+
+# Example
+
+```julia
+predictions = [1, 0, 1, 1, 0, 1]
+labels      = [1, 0, 0, 1, 0, 1]
+protected   = [:A, :A, :B, :B, :B, :A]
+equalized_odds(predictions, labels, protected)
+```
+"""
 function equalized_odds(predictions::AbstractVector{<:Real}, labels::AbstractVector{<:Real},
                         protected_attributes::AbstractVector)::Float64
     @assert length(predictions) == length(labels) == length(protected_attributes) "Lengths must match."
@@ -51,6 +90,26 @@ function equalized_odds(predictions::AbstractVector{<:Real}, labels::AbstractVec
     return max(max_tpr_disparity, max_fpr_disparity)
 end
 
+"""
+    equal_opportunity(predictions::AbstractVector{<:Real}, labels::AbstractVector{<:Real},
+                      protected_attributes::AbstractVector)::Float64
+
+Return the equal-opportunity disparity: the maximum between-group difference in
+true-positive rate (TPR) only. `0.0` means individuals who merit a positive
+outcome receive one at the same rate in every group.
+
+Groups with no positive labels have no defined TPR and are left out; if fewer
+than two groups have a defined TPR the result is `0.0`.
+
+# Example
+
+```julia
+predictions = [1, 0, 1, 1, 0, 1]
+labels      = [1, 0, 0, 1, 0, 1]
+protected   = [:A, :A, :B, :B, :B, :A]
+equal_opportunity(predictions, labels, protected)
+```
+"""
 function equal_opportunity(predictions::AbstractVector{<:Real}, labels::AbstractVector{<:Real},
                           protected_attributes::AbstractVector)::Float64
     @assert length(predictions) == length(labels) == length(protected_attributes) "Lengths must match."
@@ -75,6 +134,29 @@ function equal_opportunity(predictions::AbstractVector{<:Real}, labels::Abstract
     return length(tprs) >= 2 ? maximum(tprs) - minimum(tprs) : 0.0
 end
 
+"""
+    disparate_impact(predictions::AbstractVector, protected_attributes::AbstractVector)::Float64
+
+Return the disparate-impact ratio: the lowest group selection rate divided by
+the highest. `1.0` means equal selection rates; values near `0.0` mean strong
+disparity. Under the "four-fifths rule" a ratio below `0.8` is commonly read as
+evidence of adverse impact.
+
+Returns `1.0` when fewer than two groups are present or when no group is ever
+selected.
+
+Note that this is a ratio where *higher is fairer*, the opposite orientation to
+the disparity metrics above; `satisfy(::Fairness, …)` therefore reads a
+`:disparate_impact` threshold as a minimum ratio (e.g. `threshold = 0.8`).
+
+# Example
+
+```julia
+predictions = [1, 0, 1, 1, 0, 1]
+protected   = [:A, :A, :B, :B, :B, :A]
+disparate_impact(predictions, protected)  # 1.0
+```
+"""
 function disparate_impact(predictions::AbstractVector, protected_attributes::AbstractVector)::Float64
     @assert length(predictions) == length(protected_attributes) "Lengths must match."
     unique_groups = unique(protected_attributes)
@@ -93,6 +175,28 @@ function disparate_impact(predictions::AbstractVector, protected_attributes::Abs
     return max_rate > 0.0 ? min_rate / max_rate : 1.0
 end
 
+"""
+    individual_fairness(predictions::AbstractVector, similarity_matrix::AbstractMatrix;
+                        similarity_threshold::Float64 = 0.8)::Float64
+
+Return the mean absolute prediction difference over all pairs of individuals
+whose similarity exceeds `similarity_threshold` ("similar individuals should be
+treated similarly"). `0.0` is best.
+
+`similarity_matrix` must be `n×n` for `n` predictions, with entries normally in
+`[0, 1]`. Returns `0.0` when no pair is similar enough to compare.
+
+# Example
+
+```julia
+predictions = [0.8, 0.2, 0.7, 0.3]
+similarity  = [1.0 0.9 0.1 0.2;
+               0.9 1.0 0.2 0.1;
+               0.1 0.2 1.0 0.85;
+               0.2 0.1 0.85 1.0]
+individual_fairness(predictions, similarity; similarity_threshold = 0.8)
+```
+"""
 function individual_fairness(predictions::AbstractVector, similarity_matrix::AbstractMatrix;
                             similarity_threshold::Float64 = 0.8)::Float64
     n = length(predictions)
@@ -111,6 +215,19 @@ function individual_fairness(predictions::AbstractVector, similarity_matrix::Abs
     return count > 0 ? total_diff / count : 0.0
 end
 
+"""
+    satisfy(value::Fairness, state::Dict)::Bool
+
+Return whether `state` meets the fairness criterion `value`.
+
+`state` must hold `:predictions`, plus `:protected` (or `:protected_attributes`)
+for the group metrics, `:labels` for `:equalized_odds`/`:equal_opportunity`, and
+`:similarity_matrix` for `:individual_fairness`. A missing key raises an error.
+
+For the disparity metrics the check is `disparity <= value.threshold`. For
+`:disparate_impact` it is `ratio >= value.threshold`, so the threshold is a
+minimum ratio there (the default `0.05` is far looser than the usual `0.8`).
+"""
 function satisfy(value::Fairness, state::Dict)::Bool
     predictions = get(state, :predictions, nothing)
     protected = get(state, :protected, get(state, :protected_attributes, nothing))

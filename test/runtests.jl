@@ -823,8 +823,8 @@ using Axiology
 
         @testset "Critical safety with prover and details" begin
             s = Safety(invariant="test", critical=true)
-            proof = Dict(:verified => true, :prover => :Lean, :details => "Formally verified")
-            @test verify_value(s, proof)
+            proof = Dict(:verified => true, :prover => :Lean, :details => "attestation from an external prover")
+            @test (@test_logs (:info, r"names prover") verify_value(s, proof))
         end
 
         @testset "Non-critical safety does not require prover" begin
@@ -958,3 +958,5 @@ using Axiology
         @test Safety <: Value
     end
 end
+
+include("hardening.jl")

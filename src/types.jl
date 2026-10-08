@@ -451,3 +451,17 @@ Prints a concise string representation of a `Safety` object to the given
 I/O stream.
 """
 Base.show(io::IO, s::Safety) = print(io, "Safety(\"$(s.invariant)\")")
+
+# Enum variant documentation. Each variant names a metric; the value
+# constructors themselves take the plain Symbol (e.g. `:demographic_parity`).
+@doc "`FairnessMetric` variant for demographic parity; pass `:demographic_parity` to `Fairness`." demographic_parity_metric
+@doc "`FairnessMetric` variant for equalized odds; pass `:equalized_odds` to `Fairness`." equalized_odds_metric
+@doc "`FairnessMetric` variant for equal opportunity; pass `:equal_opportunity` to `Fairness`." equal_opportunity_metric
+@doc "`FairnessMetric` variant for the disparate-impact ratio; pass `:disparate_impact` to `Fairness`." disparate_impact_metric
+@doc "`FairnessMetric` variant for individual fairness; pass `:individual_fairness` to `Fairness`." individual_fairness_metric
+@doc "`WelfareMetric` variant for utilitarian (sum) welfare; pass `:utilitarian` to `Welfare`." utilitarian_metric
+@doc "`WelfareMetric` variant for Rawlsian (maximin) welfare; pass `:rawlsian` to `Welfare`." rawlsian_metric
+@doc "`WelfareMetric` variant for egalitarian (negated variance) welfare; pass `:egalitarian` to `Welfare`." egalitarian_metric
+@doc "`EfficiencyMetric` variant for Pareto efficiency; pass `:pareto` to `Efficiency`." pareto_metric
+@doc "`EfficiencyMetric` variant for Kaldor-Hicks efficiency; pass `:kaldor_hicks` to `Efficiency`." kaldor_hicks_metric
+@doc "`EfficiencyMetric` variant for computation time; pass `:computation_time` to `Efficiency`." computation_time_metric
