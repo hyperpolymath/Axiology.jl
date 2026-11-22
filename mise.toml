@@ -1,57 +1,21 @@
+# The toolchain for this repository (julia). Rendered at mint by
+# scripts/render-mise.sh from the languages the tree declares; the language→tool
+# table is build/just/provision-lib.sh's, so this file and `just doctor` cannot
+# disagree. Specs are `latest`; mise.lock records the concrete version and
+# per-platform checksum of each. Refresh both with: just toolchain-refresh
+# Canon: hyperpolymath/standards 3-practice/provisioning (TRUST-DEFAULTS §toolchain).
+# Estate policy: no python, node/npm/yarn, make or nix here. JavaScript runs
+# Bun > Deno > pnpm from one package.json (LANGUAGE-POLICY §1.4).
+#
+# Hand-edited project tools belong below the table's end, never by replacing it:
+# `scripts/check-mise-language.sh` fails when a tool matches no detected
+# language, and when a detected language's tool is missing.
+
+[settings]
+lockfile = true
+
 [tools]
-# Language runtimes
-node = "latest"
-python = "latest"
-rust = "latest"
-go = "latest"
-zig = "latest"
-java = "latest"
-bun = "latest"
-denojs = "latest"
-
-# Package managers
-npm = "latest"
-yarn = "latest"
-pnpm = "latest"
-pip = "latest"
-cargo = "latest"
-go-task = "latest"
-
-# Formatting & Linting
-gofmt = "latest"
-black = "latest"
-isort = "latest"
-ruff = "latest"
-prettier = "latest"
-shfmt = "latest"
-stylua = "latest"
-
-# Build tools
-cmake = "latest"
-make = "latest"
-ninja = "latest"
-
-# Shell tools
-git = "latest"
-gnu-sed = "latest"
-gnu-tar = "latest"
-gnu-grep = "latest"
-
-# Testing
-vitest = "latest"
-pytest = "latest"
-jest = "latest"
-
-[env]
-# Common environment variables
-NODE_ENV = "development"
-PYTHONDONTWRITEBYTECODE = "1"
-PYTHONUNBUFFERED = "1"
-
-# Task runner alias
-[alias]
-task = "go-task"
-build = "cargo build --release || npm run build || go build"
-test = "cargo test || npm test || go test ./..."
-lint = "ruff check . || prettier --check . || black --check ."
-fmt = "ruff format . || prettier --write . || black ."
+just = "latest"
+shellcheck = "latest"     # the shell scripts
+yq = "latest"             # scripts/kyaml-format.sh (KYAML configs)
+julia = "latest"
