@@ -1,8 +1,8 @@
 # The toolchain for this repository (julia). Rendered at mint by
 # scripts/render-mise.sh from the languages the tree declares; the language→tool
 # table is build/just/provision-lib.sh's, so this file and `just doctor` cannot
-# disagree. Specs are `latest`; mise.lock records the concrete version and
-# per-platform checksum of each. Refresh both with: just toolchain-refresh
+# disagree. Specs are `latest`. `lockfile = true` makes mise write mise.lock
+# (concrete versions and checksums) on `mise install`; commit it to pin them.
 # Canon: hyperpolymath/standards 3-practice/provisioning (TRUST-DEFAULTS §toolchain).
 # Estate policy: no python, node/npm/yarn, make or nix here. JavaScript runs
 # Bun > Deno > pnpm from one package.json (LANGUAGE-POLICY §1.4).
